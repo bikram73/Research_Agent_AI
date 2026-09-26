@@ -90,6 +90,16 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate }) => {
             Pipeline
           </button>
           <button
+            onClick={() => onNavigate('library')}
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
+              currentView === 'library'
+                ? 'bg-white text-[#004AC1] shadow-sm'
+                : 'text-[#5C5D69] hover:text-[#191B23]'
+            }`}
+          >
+            Library
+          </button>
+          <button
             onClick={() => onNavigate('about')}
             className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
               currentView === 'about'
