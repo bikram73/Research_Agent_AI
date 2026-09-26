@@ -1,0 +1,6 @@
+{
+  "name": "Research Agent AI",
+  "description": "A research agent app with screens for importing sources, deep research workspace, citation exploration, retrieval pipeline, and library management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
