@@ -85,19 +85,19 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
               <div className="flex -space-x-3">
                 <img 
                   className="w-10 h-10 rounded-full border-2 border-white object-cover shadow-sm" 
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwE0DbLHYPeFkr7NcOMR0sp11ZxY4TBQDFej18eCC5ApIKU-mug2sKQTTInHVXkjqWIpXfbg1ipnbKI-uHHfbuis1EfMA3P4wcKAf_QsqDD15J3Mc72td-gKTXWfV-d7Gj8oRSw5mDV1Dc56oeIZUJSsAqwkREQQn2CayHAUWBMSMlx3yMPIu3TfTie9Jvg1cmAaMeJo8oRgVeHA79oQaV110Nxkbc0ONvCy54q7zWnbUBZ9Y_17kj" 
+                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80" 
                   alt="Researcher" 
                   referrerPolicy="no-referrer"
                 />
                 <img 
                   className="w-10 h-10 rounded-full border-2 border-white object-cover shadow-sm" 
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZcSh12z_iqyxU12O5BcRIMsZLzWqfbZrb2YCWovRa3ySbmZyZPdxilmUHhEmF0dEUE5J6wCKNytekbpq-i6gyQNiWq9aLA1XeDO_tH_VSy6CqO2HfcN6JH6DFb_q9QH9JjoNC7eOQV653yU0iU5f5062LEo47Yp3z5Ss_I9a_btRXm728XFdeozcJVFME25Gjl57iJstOdDabnxOgr3lnw2-SQAFpI_OYHMdUeqA8I2PRr44LSW-f" 
+                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120&q=80" 
                   alt="Analyst" 
                   referrerPolicy="no-referrer"
                 />
                 <img 
                   className="w-10 h-10 rounded-full border-2 border-white object-cover shadow-sm" 
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuCA5gEiHrBoYAE8AjkCzn34TxUXyGWZ6Ciov_SUyYsjB_JHiywKaHMiRa2QFtNHgeATQ8JaBbBUTmy-GFRi0lW9wULi6HvykWgFRTrV9GZb4q2mAxJptXt7huj8ZWUR4pHYH5hoEKLQDf0WWAcsB4rb-gYK4DEJXW641tqAulW1ei-cIBlkvu4tyGyYDhueSppoo13IuTsWgn4zua6ONb46RLH3BXgBpauzEU7bG4mWN-ERU4cER1wo" 
+                  src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&h=120&q=80" 
                   alt="Academic" 
                   referrerPolicy="no-referrer"
                 />
@@ -116,10 +116,10 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
               style={{ transform: `translate(${mousePos.x}px, ${mousePos.y}px)` }}
             >
               <img 
-                src="https://lh3.googleusercontent.com/aida/AP1WRLuzsgWrcujQqSDeQscSDMwyKWpA10uKif8x6V8_sLskP4TSUFv1Mhn5MNkFU6e5lVSfDtaxlJS4OI5mmrFWd0CSnZUfr_eaiynw3OIgdJzFd9hE3_4c1dgPbXx6RgP2gJcYoMvb4faKQO6RMbNokacMKoy-FGLhnW1T6xPhj-nSj-0p9sCPQMlTNiBXKPnfA7ddgpFVFimp8Yc-yJ2TfI2-WhWzJ995XXWCbV8bKd8iNKZZF9-0YJIKHCI" 
+                src="/hero-research-agent.svg" 
                 alt="AI Research Agent Holographic Diagram"
-                className="w-full h-full object-contain drop-shadow-2xl animate-float"
-                referrerPolicy="no-referrer"
+                className="w-full h-full object-contain drop-shadow-2xl animate-float select-none pointer-events-none"
+                loading="eager"
               />
 
               {/* Floating Glass Overlay Badges */}
