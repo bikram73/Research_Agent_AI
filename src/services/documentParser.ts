@@ -206,8 +206,11 @@ export async function extractTextFromFile(file: File): Promise<{ text: string; p
 }
 
 /**
- * Splits document text into structured semantic chunks with exact character offsets.
- * Bounded between 250 and 600 characters with sliding window sentence overlap.
+ * Chunks documents using sentence-boundary segmenting.
+ * Partitions text into contextual passages targeting approximately 250+ characters.
+ * Subdivides outlier sentences > 500 characters on clause boundaries to maintain compact chunks.
+ * Retains preceding short sentence (<=150 chars) across boundaries for contextual overlap.
+ * Preserves exact numerical source character offsets (charStart, charEnd).
  */
 export function chunkDocument(
   documentId: string,
@@ -222,8 +225,23 @@ export function chunkDocument(
     if (!rawPageText || !rawPageText.trim()) continue;
 
     // Break into sentences
-    const sentenceList = rawPageText.split(/(?<=[.?!])\s+/).filter((s) => s.trim().length > 0);
-    if (sentenceList.length === 0) continue;
+    const rawSentences = rawPageText.split(/(?<=[.?!])\s+/).filter((s) => s.trim().length > 0);
+    if (rawSentences.length === 0) continue;
+
+    // Subdivide any outlier sentences > 500 chars by clause punctuation to prevent oversize chunks
+    const sentenceList: string[] = [];
+    for (const s of rawSentences) {
+      if (s.length > 500) {
+        const clauses = s.split(/(?<=[;:\n])\s+/).filter((c) => c.trim().length > 0);
+        if (clauses.length > 1) {
+          sentenceList.push(...clauses);
+        } else {
+          sentenceList.push(s);
+        }
+      } else {
+        sentenceList.push(s);
+      }
+    }
 
     // Map each sentence to its exact start and end position in rawPageText
     const sentenceSpans: { text: string; start: number; end: number }[] = [];
@@ -549,11 +567,102 @@ export function synthesizeResearch(
     };
   });
 
+/**
+ * Detects contradictory metrics, conflicting years, or opposing assertions across multi-source evidence.
+ */
+function detectSourceContradiction(matches: { chunk: DocumentChunk; score: number }[]): {
+  hasConflict: boolean;
+  conflictDescription: string;
+  conflictingSources: string[];
+} {
+  const sources = new Map<string, string[]>();
+  for (const m of matches) {
+    const doc = m.chunk.documentName;
+    if (!sources.has(doc)) sources.set(doc, []);
+    sources.get(doc)!.push(m.chunk.text);
+  }
+
+  if (sources.size < 2) {
+    return { hasConflict: false, conflictDescription: '', conflictingSources: [] };
+  }
+
+  const entries = Array.from(sources.entries());
+  for (let i = 0; i < entries.length; i++) {
+    for (let j = i + 1; j < entries.length; j++) {
+      const [docA, textsA] = entries[i];
+      const [docB, textsB] = entries[j];
+      const textA = textsA.join(' ');
+      const textB = textsB.join(' ');
+
+      // 1. Check for conflicting years / launch dates on similar topics
+      const yearsA = Array.from(textA.matchAll(/\b(19\d\d|20\d\d)\b/g)).map((m) => m[0]);
+      const yearsB = Array.from(textB.matchAll(/\b(19\d\d|20\d\d)\b/g)).map((m) => m[0]);
+      const uniqueYearsA = Array.from(new Set(yearsA));
+      const uniqueYearsB = Array.from(new Set(yearsB));
+
+      if (uniqueYearsA.length > 0 && uniqueYearsB.length > 0) {
+        const commonYears = uniqueYearsA.filter((y) => uniqueYearsB.includes(y));
+        if (commonYears.length === 0) {
+          return {
+            hasConflict: true,
+            conflictDescription: `Discrepancy detected in timeline/date claims: "${docA}" reports ${uniqueYearsA.join('/')} while "${docB}" reports ${uniqueYearsB.join('/')}.`,
+            conflictingSources: [docA, docB],
+          };
+        }
+      }
+
+      // 2. Check for conflicting throughput / quantitative metrics
+      const metricRegex = /\b(\d+[\d,.]*)\s*(tps|tx\/s|transactions|ms|%|percent|nodes|validators)\b/gi;
+      const metricsA = Array.from(textA.matchAll(metricRegex)).map((m) => `${m[1]} ${m[2].toLowerCase()}`);
+      const metricsB = Array.from(textB.matchAll(metricRegex)).map((m) => `${m[1]} ${m[2].toLowerCase()}`);
+      if (metricsA.length > 0 && metricsB.length > 0) {
+        for (const mA of metricsA) {
+          const [valA, unitA] = mA.split(' ');
+          for (const mB of metricsB) {
+            const [valB, unitB] = mB.split(' ');
+            if (unitA === unitB && valA !== valB) {
+              return {
+                hasConflict: true,
+                conflictDescription: `Discrepancy detected in quantitative metrics: "${docA}" reports ${valA} ${unitA}, whereas "${docB}" reports ${valB} ${unitB}.`,
+                conflictingSources: [docA, docB],
+              };
+            }
+          }
+        }
+      }
+
+      // 3. Check for opposing polarity keywords on similar entities
+      const polarityA = /unsupported|failed|incompatible|disproved|rejected|prohibits/i.test(textA);
+      const polarityB = /supported|proven|verified|compatible|confirms|permits/i.test(textB);
+      if (polarityA && polarityB) {
+        return {
+          hasConflict: true,
+          conflictDescription: `Conflicting assertions surfaced: "${docA}" presents negative/incompatibility findings, while "${docB}" presents affirmative/verified findings.`,
+          conflictingSources: [docA, docB],
+        };
+      }
+    }
+  }
+
+  return { hasConflict: false, conflictDescription: '', conflictingSources: [] };
+}
+
   // Check for multi-source contradiction / cross-source synthesis
   let multiSourceSynthesisNote = '';
   if (sourcesRepresented.size > 1) {
     const srcArray = Array.from(sourcesRepresented);
-    multiSourceSynthesisNote = ` Corroborated across ${sourcesRepresented.size} independent sources: ${srcArray.join(', ')}.`;
+    const conflict = detectSourceContradiction(topMatches);
+    if (conflict.hasConflict) {
+      multiSourceSynthesisNote = ` ⚠️ Contrasting Evidence Detected: ${conflict.conflictDescription} Both perspectives are cited with distinct provenance for reviewer verification.`;
+      coreFindings.unshift({
+        finding: `Contrasting Claims Surfaced: ${conflict.conflictDescription}`,
+        citationRef: 'Sources [1] & [2]',
+        sourceTitle: 'Multi-Source Discrepancy',
+        page: 'Comparative Review',
+      });
+    } else {
+      multiSourceSynthesisNote = ` Corroborated across ${sourcesRepresented.size} independent sources: ${srcArray.join(', ')}.`;
+    }
   }
 
   // Construct abstract synthesis

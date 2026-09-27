@@ -38,7 +38,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ onNavigate }) => {
 
     if (format === 'md') {
       content = `# ${activeResult.title}\n\n` +
-        `**Confidence Score:** ${activeResult.confidenceScore}% (Grounded Neural Verification)\n` +
+        `**Confidence Score:** ${activeResult.confidenceScore}% (Grounded Vector Verification)\n` +
         `**Date Generated:** ${activeResult.dateGenerated}\n\n` +
         `## Abstract Synthesis\n` +
         `${activeResult.summary}\n\n` +
@@ -104,7 +104,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ onNavigate }) => {
             {isGuardrailActive ? 'GUARDRAIL VERIFIED' : 'RESEARCH COMPLETE'}
           </span>
           <span className="text-xs text-[#5C5D69]">
-            Synthesis Engine v2.4 • Grounded Neural Pipeline
+            Synthesis Engine v2.4 • Deterministic Vector Pipeline
           </span>
         </div>
 

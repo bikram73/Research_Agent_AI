@@ -31,15 +31,15 @@ This report establishes the quality assurance and test execution record for **Re
 | Testing Domain | Total Cases | Automated CLI | Browser / UI | Verification Scope |
 | :--- | :--- | :--- | :--- | :--- |
 | **Document Ingestion** | 12 | 5 | 7 | Multi-format parsing (PDF, DOCX, TXT, MD, CSV, JSON, HTML) with page-level & offset provenance |
-| **RAG & Chunking** | 10 | 4 | 6 | Semantic sentence boundary chunking, token indexing, cosine & token overlap scoring |
-| **Citation & Provenance** | 8 | 4 | 4 | Page-level references, verbatim evidence quotes, and character offset bindings |
+| **RAG & Chunking** | 10 | 4 | 6 | Sentence boundary chunking, token indexing, TF-vector cosine & synonym matching |
+| **Citation & Provenance** | 8 | 4 | 4 | Page-level references, source-derived evidence excerpts, and Provenance IDs |
 | **Evidence-Grounded Guardrails** | 6 | 4 | 2 | Unsupported question detection, negative dataset rejection, 0 false citations |
 | **Error Handling & Validation** | 7 | 5 | 2 | 0-byte files, corrupt PDF/DOCX streams, unsupported formats (.exe), >50MB limits |
-| **State Synchronization** | 5 | 4 | 1 | Dynamic document deletion, instant stale context purge, clean empty-state handling |
+| **State Synchronization & Multi-Source** | 6 | 5 | 1 | Dynamic document deletion, stale purge, multi-source contradiction detection (`RAG-CONFLICT-001`) |
 | **UI / UX & Export** | 9 | 1 | 8 | PDF/Print, Markdown, Plain Text, Structured JSON exports, responsive navigation |
 | **Performance & Latency** | 4 | 1 | 3 | Small file sub-10ms parsing, 15–40 page document latency profiles |
-| **Security & Privacy** | 2 | 2 | 0 | Client memory isolation, HTML `<script>` / `onerror` sanitization, zero telemetry |
-| **Total Test Suite** | **63** | **28** | **35** | **100% Pass across all 63 enumerated test cases** |
+| **Security & Privacy** | 2 | 2 | 0 | Client memory isolation, HTML `<script>` / `onerror` sanitization, zero tracking |
+| **Total Test Suite** | **64** | **29** | **35** | **100% Pass across all 64 enumerated test cases** |
 
 ---
 
@@ -48,15 +48,15 @@ This report establishes the quality assurance and test execution record for **Re
 - **Citation Mapping Accuracy:** **100% correct** across the controlled citation test cases.
 - **False Citations on Unrelated Queries:** **0 false citations observed** across the executed negative and citation test datasets.
 - **Unsupported-Query Fabrication:** **0 observed** in the controlled negative test set (all negative/unrelated queries explicitly return Insufficient Evidence declarations).
-- **Retrieval Precision Benchmark:** **100.0%** on the controlled evaluation dataset:
+- **Retrieval Precision Benchmark:** **100.0% precision on the 5-query controlled benchmark dataset**:
   $$\text{Precision} = \frac{\text{Relevant Retrieved Chunks}}{\text{Total Retrieved Chunks}} \times 100 = \frac{5}{5} \times 100 = 100.0\%$$
-- **Paraphrased Query Relevance:** Top chunk matched with **54.0% relevance score** (lexical + semantic term overlap).
+- **Paraphrased Query Relevance:** Top chunk matched with **84.4% relevance score** (TF-vector cosine similarity + domain synonym expansion).
 - **Performance Benchmark Latency:** Measured latency varies by document type, file size, browser, and hardware. Controlled smoke tests demonstrated sub-10ms processing for small plain text/markdown inputs; multi-page PDFs (15–40 pages) require separate benchmark reporting (~210–680ms, as documented in the Technical Report).
-- **Security & Privacy Posture:** No persistent database or authentication layer is used; document processing occurs strictly in browser memory. Tested and verified against HTML script injection (`SEC-HTML-001`) and oversized memory exhaustion attacks (`ERR-DOC-005`).
+- **Security & Privacy Posture:** Uploaded document content is processed in browser memory and is not persisted in an application database. Tested and verified against HTML script injection (`SEC-HTML-001`) and oversized memory exhaustion attacks (`ERR-DOC-005`).
 
 ---
 
-## 🧪 Comprehensive 63-Test Execution Matrix
+## 🧪 Comprehensive 64-Test Execution Matrix
 
 The following table explicitly enumerates all 63 test cases, their execution method, expected behavior, observed results, and verification evidence.
 
@@ -128,7 +128,7 @@ The following table explicitly enumerates all 63 test cases, their execution met
 | `ERR-006` | Malformed JSON Ingestion | Browser Runtime | Trap invalid JSON syntax with line error | Friendly error banner: *"Invalid JSON syntax"* | 🟢 PASS | UI Error Toast: Error message displayed |
 | `ERR-007` | Empty CSV File | Browser Runtime | Trap CSV files containing no data rows | User notification: *"CSV file contains no data rows"* | 🟢 PASS | UI Alert: Informative prompt displayed |
 
-### 6. State Synchronization & Lifecycle (STATE-001 to STATE-005)
+### 6. State Synchronization, Multi-Source & Contradiction (STATE-001 to STATE-006)
 
 | ID | Test Scope | Verification Method | Expected Behavior | Actual Result | Status | Verification Evidence |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -136,7 +136,8 @@ The following table explicitly enumerates all 63 test cases, their execution met
 | `STATE-002` | Source Deletion Stale Purge | Automated CLI (`npm test`) | Removing Doc A immediately purges chunks & citations | Re-query yielded 0 references to deleted document | 🟢 PASS | Log: `[DOC-MULTI-002] PASS: Purged from citations` |
 | `STATE-003` | Empty Knowledge Base State | Automated CLI (`npm test`) | Clearing all files returns clean 0-state | 0 chunks, 0 confidence, clean empty state | 🟢 PASS | Log: `[DOC-MULTI-003] PASS: Clean 0-state` |
 | `STATE-004` | Post-Deletion Export Integrity | Automated CLI (`npm test`) | Export payload contains zero references to deleted doc | JSON & MD exports verified 100% free of stale data | 🟢 PASS | Log: `[STATE-EXP-001] PASS: Export verified` |
-| `STATE-005` | Live Document Counter Sync | Browser Runtime (UI) | Navbar and Library document count updates in real-time | Badges immediately decrement upon source deletion | 🟢 PASS | UI Navbar: Counter reflects current store state |
+| `STATE-005` | Conflicting Source Claims | Automated CLI (`npm test`) | Both conflicting sources cited; timeline/metric discrepancy surfaced | Both reports cited; discrepancy note surfaced in synthesis | 🟢 PASS | Log: `[RAG-CONFLICT-001] PASS: Discrepancy highlighted` |
+| `STATE-006` | Live Document Counter Sync | Browser Runtime (UI) | Navbar and Library document count updates in real-time | Badges immediately decrement upon source deletion | 🟢 PASS | UI Navbar: Counter reflects current store state |
 
 ### 7. UI / UX & Export Formats (UI-001 to UI-009)
 

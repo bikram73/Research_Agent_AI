@@ -15,14 +15,14 @@ export const PipelineView: React.FC<PipelineViewProps> = ({ onNavigate }) => {
     {
       id: 1,
       name: '1. Ingestion',
-      description: `Ingested ${sources.length} document(s) & URLs into secure sandbox memory`,
+      description: `Ingested ${sources.length} document(s) into client in-memory store`,
       icon: 'upload_file',
       colorClass: 'bg-blue-50 text-[#004AC1] border-blue-200',
       status: 'COMPLETE',
     },
     {
       id: 2,
-      name: '2. OCR & Parsing',
+      name: '2. Parsing & Offsets',
       description: 'Extracted plain text layers, structural page references, and character offsets across all files',
       icon: 'document_scanner',
       colorClass: 'bg-indigo-50 text-indigo-700 border-indigo-200',
@@ -30,8 +30,8 @@ export const PipelineView: React.FC<PipelineViewProps> = ({ onNavigate }) => {
     },
     {
       id: 3,
-      name: '3. Semantic Chunking',
-      description: `Generated ${totalChunks} contextual paragraph chunks with character boundary tracking`,
+      name: '3. Sentence Chunking',
+      description: `Generated ${totalChunks} contextual sentence chunks with character boundary tracking`,
       icon: 'grid_view',
       colorClass: 'bg-purple-50 text-purple-700 border-purple-200',
       status: 'COMPLETE (100%)',
@@ -39,15 +39,15 @@ export const PipelineView: React.FC<PipelineViewProps> = ({ onNavigate }) => {
     },
     {
       id: 4,
-      name: '4. Vector Embedding',
-      description: 'Indexed high-dimensional text token representations for semantic search',
+      name: '4. TF-Vector Space',
+      description: 'Indexed multi-dimensional term frequency vectors with domain synonym mappings',
       icon: 'scatter_plot',
       colorClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
       status: 'READY',
     },
     {
       id: 5,
-      name: '5. Neural Similarity Search',
+      name: '5. Vector Cosine Retrieval',
       description: `Ranked top evidence against query with top similarity score: ${activeResult.confidenceScore}%`,
       icon: 'saved_search',
       colorClass: 'bg-amber-50 text-amber-700 border-amber-200',
@@ -56,7 +56,7 @@ export const PipelineView: React.FC<PipelineViewProps> = ({ onNavigate }) => {
     {
       id: 6,
       name: '6. Grounded Synthesis',
-      description: `Synthesized findings with ${activeResult.citations.length} verified citation references`,
+      description: `Synthesized findings with ${activeResult.citations.length} verified citation references and contradiction checks`,
       icon: 'auto_awesome',
       colorClass: 'bg-gradient-to-r from-[#004AC1] to-[#8343f4] text-white border-transparent',
       status: 'ACTIVE ENGINE',
@@ -73,11 +73,11 @@ export const PipelineView: React.FC<PipelineViewProps> = ({ onNavigate }) => {
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-[#004AC1]">hub</span>
             <h1 className="text-2xl font-extrabold text-[#191B23] font-['Manrope']">
-              Neural Retrieval Pipeline
+              Deterministic Retrieval Pipeline
             </h1>
           </div>
           <p className="text-xs text-[#5C5D69] mt-1">
-            Real-time data flow from raw unstructured document parsing to vector search and grounded synthesis.
+            Real-time data flow from raw document parsing to TF-vector space retrieval and grounded synthesis.
           </p>
         </div>
 

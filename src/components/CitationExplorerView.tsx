@@ -17,9 +17,10 @@ export const CitationExplorerView: React.FC<CitationExplorerProps> = ({ onNaviga
       sourceDocument: 'No Citations Generated',
       sourceTitle: 'Citation Index Empty',
       author: 'Research Engine',
-      publication: 'Neural Grounding Pipeline',
+      publication: 'Knowledge Base Document Index',
       published: new Date().toLocaleDateString(),
-      doi: '10.rag/index/1',
+      provenanceId: 'prov-init-01',
+      doi: 'prov-init-01',
       similarityScore: 0,
       extractedParagraph: 'No active citations found. Upload research documents or run a query to populate verified citations.',
     },
@@ -180,7 +181,7 @@ export const CitationExplorerView: React.FC<CitationExplorerProps> = ({ onNaviga
 
               <div>
                 <label className="text-[10px] font-bold text-[#808191] uppercase">Index ID & Provenance Reference</label>
-                <p className="text-[#004AC1] font-mono text-[11px]">{currentCitation.publication} • DOI: {currentCitation.doi}</p>
+                <p className="text-[#004AC1] font-mono text-[11px]">{currentCitation.publication} • Provenance ID: {currentCitation.provenanceId}</p>
               </div>
             </div>
 

@@ -43,7 +43,7 @@ Question:
     },
     {
       q: 'Does this app store my documents in a database?',
-      a: 'No. Vector embeddings, document structures, and parsed text chunks are stored strictly in-memory during your research session. No persistent database or third-party storage is used, ensuring complete privacy for sensitive academic and business documents.'
+      a: 'No. Document structures, term frequency tables, and parsed text chunks are stored strictly in-memory during your research session. Uploaded document content is processed in browser memory and is not persisted in an application database, ensuring privacy for proprietary academic and business documents.'
     },
     {
       q: 'What file formats are supported for document parsing?',
@@ -51,7 +51,7 @@ Question:
     },
     {
       q: 'How are citations formatted and linked?',
-      a: 'Every finding includes bracketed citations linked to source document titles, page/section references, and exact character offsets. In Citation Explorer, users can inspect the verbatim extracted quote and verified provenance.'
+      a: 'Every finding includes bracketed citations linked to source document titles, page/section references, and exact character offsets. In Citation Explorer, users can inspect the source-derived evidence excerpt and verified Provenance ID.'
     },
     {
       q: 'How is the confidence score calculated?',
@@ -91,9 +91,9 @@ Question:
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
           {[
             { step: '1', title: 'Upload & Ingest', desc: 'Client-side parsers (pdfjs-dist, Mammoth) extract text from PDF, DOCX, TXT, MD, CSV, JSON, HTML.', icon: 'upload_file' },
-            { step: '2', title: 'Chunk & Index', desc: 'Splits text into 250–600 character passages tracking page references and character offsets.', icon: 'grid_view' },
-            { step: '3', title: 'Semantic Search', desc: 'Cosine similarity & lexical matching retrieve Top-K candidate passages in-memory.', icon: 'travel_explore' },
-            { step: '4', title: 'Grounded Synthesis', desc: 'Synthesizes findings using verified evidence with provenance attributions.', icon: 'auto_awesome' },
+            { step: '2', title: 'Sentence Chunking', desc: 'Sentence-boundary chunking targeting ~250+ characters tracking page references and character offsets.', icon: 'grid_view' },
+            { step: '3', title: 'TF-Vector Search', desc: 'TF-vector cosine similarity and domain synonym expansion retrieve candidate passages in-memory.', icon: 'travel_explore' },
+            { step: '4', title: 'Grounded Synthesis', desc: 'Synthesizes findings using verified evidence with Provenance ID attributions and contradiction checks.', icon: 'auto_awesome' },
           ].map((item) => (
             <div key={item.step} className="p-4 rounded-2xl bg-[#FAF8FF] border border-[#E0E0FF] space-y-2 relative">
               <div className="w-10 h-10 rounded-xl bg-[#004AC1] text-white flex items-center justify-center mx-auto font-bold text-sm shadow-md">

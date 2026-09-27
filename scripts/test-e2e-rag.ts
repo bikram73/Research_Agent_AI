@@ -498,6 +498,80 @@ async function runTestSuite() {
     recordTest('STATE-EXP-001', 'Multi-Source Deletion, Re-query & Export Provenance', 'State Synchronization', 'FAIL', 'Stale references or invalid provenance found in exported payload');
   }
 
+  // RAG-CONFLICT-001: Conflicting Source Claims (Discrepancy Detection & Attribution)
+  const conflictDocAlpha: SourceFile = {
+    id: 'conflict-alpha',
+    name: 'QuantumLedger_Report_2024.txt',
+    size: '80 KB',
+    type: 'txt',
+    status: 'complete',
+    statusText: '100% Embedded',
+    chunks: [
+      {
+        id: 'c-alpha-1',
+        documentId: 'conflict-alpha',
+        documentName: 'QuantumLedger_Report_2024.txt',
+        pageOrSection: 'Page 1',
+        text: 'QuantumLedger production release occurred in 2024 delivering 1500 tps throughput across 32 validator nodes.',
+        charStart: 0,
+        charEnd: 110,
+      },
+    ],
+  };
+
+  const conflictDocBeta: SourceFile = {
+    id: 'conflict-beta',
+    name: 'QuantumLedger_Report_2025.txt',
+    size: '85 KB',
+    type: 'txt',
+    status: 'complete',
+    statusText: '100% Embedded',
+    chunks: [
+      {
+        id: 'c-beta-1',
+        documentId: 'conflict-beta',
+        documentName: 'QuantumLedger_Report_2025.txt',
+        pageOrSection: 'Page 1',
+        text: 'QuantumLedger production release occurred in 2025 delivering 9200 tps throughput across 128 validator nodes.',
+        charStart: 0,
+        charEnd: 111,
+      },
+    ],
+  };
+
+  const conflictResult = synthesizeResearch('QuantumLedger production release throughput tps', [
+    conflictDocAlpha,
+    conflictDocBeta,
+  ]);
+
+  const bothSourcesCited =
+    conflictResult.citations.some((c) => c.sourceDocument === 'QuantumLedger_Report_2024.txt') &&
+    conflictResult.citations.some((c) => c.sourceDocument === 'QuantumLedger_Report_2025.txt');
+
+  const discrepancySurfaced =
+    conflictResult.summary.includes('Contrasting Evidence Detected') ||
+    conflictResult.coreFindings.some(
+      (f) => f.finding.includes('Contrasting') || f.finding.includes('Discrepancy')
+    );
+
+  if (bothSourcesCited && discrepancySurfaced) {
+    recordTest(
+      'RAG-CONFLICT-001',
+      'Conflicting Source Claims & Discrepancy Surfacing',
+      'Multi-Source Contradiction',
+      'PASS',
+      `Both conflicting documents cited and discrepancy explicitly highlighted in synthesis`
+    );
+  } else {
+    recordTest(
+      'RAG-CONFLICT-001',
+      'Conflicting Source Claims & Discrepancy Surfacing',
+      'Multi-Source Contradiction',
+      'FAIL',
+      `Failed to identify conflict or cite both sources: bothCited=${bothSourcesCited}, surfaced=${discrepancySurfaced}`
+    );
+  }
+
   // -------------------------------------------------------------
   // GROUP 8: Query Edge Cases (PRD Section 26, 27, 28)
   // -------------------------------------------------------------

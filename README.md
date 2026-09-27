@@ -16,7 +16,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
 <p align="center">
-  <b>Research Agent AI</b> is an enterprise-grade academic research intelligence workstation. It autonomously ingests, parses, chunks, and synthesizes complex research papers, technical reports, and multi-format documents with <b>evidence-grounded answer guardrails</b>, verifiable page-level references with character offsets, and deep semantic verification.
+  <b>Research Agent AI</b> is an academic research intelligence workstation. It autonomously ingests, parses, chunks, and synthesizes complex research papers, technical reports, and multi-format documents with <b>evidence-grounded answer guardrails</b>, verifiable page-level references with character offsets, and deterministic TF-vector cosine retrieval with domain synonym expansion.
 </p>
 
 <p align="center">
@@ -70,33 +70,34 @@
 - **PDF Extraction**: Uses `pdfjs-dist` to parse binary page streams directly in the browser, tracking exact page numbers, line breaks, and typographic blocks.
 - **Word `.docx` Ingestion**: Uses `mammoth` to extract clean semantic paragraphs, tables, and headers while stripping proprietary XML overhead.
 - **Structured & Plain Formats**: Native support for `.txt`, `.md` (Markdown), `.csv`, `.json`, and `.html` with boundary preservation.
-- **Zero-Transmission Local Processing**: Ingests files entirely in-memory on the client, preserving full confidentiality for proprietary or sensitive scientific drafts.
+- **Client-Side In-Memory Processing**: Uploaded document content is processed in browser memory and is not persisted in an application database, preserving confidentiality for proprietary or sensitive scientific drafts.
 
-### 🧩 2. Semantic Document Chunking & Provenance Metadata
-- Splits large documents into coherent semantic passages (250–600 characters) without breaking mid-sentence.
+### 🧩 2. Sentence-Boundary Chunking & Provenance Tracking
+- Sentence-boundary chunking targeting approximately 250+ characters, with the previous short sentence (<=150 chars) retained for contextual overlap.
+- Subdivides outlier sentences > 500 characters on clause boundaries to preserve compact passage boundaries.
 - Preserves explicit provenance metadata:
   - `documentId` & `documentName`
-  - `pageOrSection` (e.g. *Page 14*, *Section 3*)
+  - `pageOrSection` (e.g. *Page 1*, *Section 3*)
   - Character offsets (`charStart`, `charEnd`)
 - Instant feedback in the UI showing token count, chunk count, and embedding health.
 
-### 🔍 3. Vector Similarity & Grounded Retrieval (RAG)
-- Query-driven cosine similarity and Jaccard token matching.
-- Ranks chunks based on semantic proximity to user inquiries.
-- Dynamic relevance scores mapped between `0.00` and `1.00`.
+### 🔍 3. Vector Similarity & Grounded Retrieval (TF-Vector Cosine + Synonym Expansion)
+- Query-driven TF-vector cosine similarity, token overlap, and domain synonym expansion.
+- Ranks chunks based on semantic proximity and query coverage.
+- Dynamic relevance scores mapped between `0.00` and `0.99`, with explicit `0.00` rejection for zero-overlap queries.
 
-### 🔎 4. Interactive Citation Explorer
-- Deep-dive interface showing real extracted snippets, exact source papers, and page stamps.
-- Visual badge indicators with match percentages.
-- Copy quote, inspect full source context, and trace evidence back to the originating paragraph.
+### 🔎 4. Interactive Citation Explorer & Multi-Source Contradiction Detection
+- Deep-dive interface showing source-derived evidence excerpts, exact source papers, and page stamps.
+- Internal **Provenance ID** tags (`prov-[docId]-[index]`) enabling auditability.
+- Multi-source discrepancy detection: Surfaces contrasting dates, timelines, and quantitative metrics when cross-referencing conflicting documents.
 
 ### ⚙️ 5. Visual Pipeline Inspector
 - Real-time 5-stage pipeline telemetry:
   1. **Document Ingestion**: Active documents and parsed byte counts.
-  2. **Semantic Chunking**: Total structured chunks and token density.
-  3. **Vector Embedding**: Multi-dimensional token vectors.
-  4. **Retrieval & Reranking**: Query-matched candidate chunks.
-  5. **Synthesis & Grounding**: Consensus scoring and citation graph.
+  2. **Sentence Segmentation**: Total structured chunks and token density.
+  3. **TF-Vector Space**: Multi-dimensional term frequency vectors and domain synonyms.
+  4. **Retrieval & Reranking**: Query-matched candidate chunks with cosine similarity.
+  5. **Synthesis & Grounding**: Consensus scoring, discrepancy surfacing, and citation graph.
 
 ### 📚 6. Knowledge Base Library
 - Centralized management table of all ingested research assets.
@@ -124,7 +125,7 @@
 | **Icons & UI** | ![Lucide](https://img.shields.io/badge/Lucide_React-F56565?style=flat-square) | `0.546.0` | Comprehensive research, document, and pipeline iconography |
 | **PDF Extraction** | ![PDF.js](https://img.shields.io/badge/pdfjs--dist-E0234E?style=flat-square) | `6.3.289` | Client-side page-by-page PDF stream parsing and page/character offset provenance |
 | **DOCX Extraction**| ![Mammoth](https://img.shields.io/badge/Mammoth-2B579A?style=flat-square) | `1.13.0` | Clean XML conversion and raw text parsing for Word `.docx` documents |
-| **AI SDK** | ![Google GenAI](https://img.shields.io/badge/@google/genai-4285F4?style=flat-square&logo=google&logoColor=white) | `2.4.0` | Modern SDK for Gemini 2.5 Flash / Pro reasoning and grounded synthesis |
+| **Retrieval Engine**| ![Vector RAG](https://img.shields.io/badge/TF--Vector%20Engine-4F46E5?style=flat-square) | `Local` | Deterministic TF-vector cosine similarity, token overlap, and domain synonym expansion |
 | **Hosting & Deploy**| ![Netlify](https://img.shields.io/badge/Netlify-00C7B7?style=flat-square&logo=netlify&logoColor=white) | `Node 20` | SPA redirects, automated static deployment, edge caching headers |
 
 </div>
@@ -200,10 +201,6 @@ npm install
 Copy the example file to `.env`:
 ```bash
 cp .env.example .env
-```
-*(Optional)* Add your Gemini API key if you want to enable direct server-side cloud reasoning:
-```ini
-GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
 ### 4. Run the Development Server
