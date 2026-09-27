@@ -135,7 +135,13 @@ export const InvestigateView: React.FC<InvestigateViewProps> = ({ onNavigate }) 
               setCurrentQuery(e.target.value);
               if (validationError) setValidationError(null);
             }}
-            placeholder="Ask any research question about your uploaded documents..."
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleRunSearch();
+              }
+            }}
+            placeholder="Ask any research question about your uploaded documents (press Enter to run)..."
             rows={4}
             className="w-full p-4 rounded-2xl bg-[#FAF8FF] border border-[#DCD9FF] text-sm text-[#191B23] focus:outline-none focus:border-[#004AC1] focus:ring-2 focus:ring-[#004AC1]/20 font-['Work_Sans'] resize-none"
           />

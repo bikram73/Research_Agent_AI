@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavView } from '../types';
+import { useResearch } from '../context/ResearchContext';
 
 interface SidebarProps {
   currentView: NavView;
@@ -7,18 +8,23 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate }) => {
+  const { sources } = useResearch();
+
   if (currentView === 'home') {
     return null;
   }
 
+  const totalChunks = sources.reduce((acc, s) => acc + (s.chunks?.length || 0), 0);
+  const activeSource = sources[0]?.name || 'No documents loaded';
+
   const navItems: { id: NavView; label: string; icon: string; badge?: string }[] = [
     { id: 'home', label: 'Overview', icon: 'grid_view' },
-    { id: 'upload', label: 'Import Sources', icon: 'upload_file', badge: '3' },
+    { id: 'upload', label: 'Import Sources', icon: 'upload_file', badge: `${sources.length}` },
     { id: 'investigate', label: 'Workspace', icon: 'psychology' },
     { id: 'results', label: 'Synthesis & Insights', icon: 'auto_stories' },
     { id: 'citations', label: 'Citation Explorer', icon: 'find_in_page' },
     { id: 'pipeline', label: 'Neural Pipeline', icon: 'hub' },
-    { id: 'library', label: 'Knowledge Base', icon: 'folder_open', badge: '128' },
+    { id: 'library', label: 'Knowledge Base', icon: 'folder_open', badge: `${totalChunks}` },
     { id: 'about', label: 'About System', icon: 'info' },
   ];
 
@@ -71,11 +77,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate }) => 
             </span>
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
           </div>
-          <h4 className="text-xs font-bold text-[#191B23] truncate">
-            Q4_Market_Analysis.pdf
+          <h4 className="text-xs font-bold text-[#191B23] truncate" title={activeSource}>
+            {activeSource}
           </h4>
           <p className="text-[11px] text-[#5C5D69] mt-0.5 line-clamp-2">
-            3 sources loaded • 1,240 tokens in context.
+            {sources.length} source{sources.length !== 1 ? 's' : ''} loaded • {totalChunks} indexed chunks
           </p>
           <button 
             onClick={() => onNavigate('upload')}
