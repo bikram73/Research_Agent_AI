@@ -102,7 +102,7 @@ export const UploadView: React.FC<UploadViewProps> = ({ onNavigate }) => {
             </button>
           )}
 
-          <div className="hidden lg:flex items-center gap-2 bg-white px-4 py-2 rounded-2xl border border-[#E0E0FF] shadow-sm text-xs font-semibold">
+          <div className="flex flex-wrap items-center gap-2 bg-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl border border-[#E0E0FF] shadow-sm text-xs font-semibold">
             <div className="flex items-center gap-1.5 text-[#004AC1]">
               <span className="w-5 h-5 rounded-full bg-[#004AC1] text-white text-[10px] flex items-center justify-center font-bold">1</span>
               <span>1. Import</span>
@@ -112,12 +112,12 @@ export const UploadView: React.FC<UploadViewProps> = ({ onNavigate }) => {
               <span className="w-5 h-5 rounded-full bg-[#E0E0FF] text-[#5C5D69] text-[10px] flex items-center justify-center font-bold">2</span>
               <span>2. Pipeline</span>
             </div>
-            <span className="text-[#C5C4FF]">→</span>
+            <span className="text-[#C5C4FF] hidden sm:inline">→</span>
             <div className="flex items-center gap-1.5 text-[#808191] cursor-pointer hover:text-[#004AC1]" onClick={() => onNavigate('investigate')}>
               <span className="w-5 h-5 rounded-full bg-[#E0E0FF] text-[#5C5D69] text-[10px] flex items-center justify-center font-bold">3</span>
               <span>3. Workspace</span>
             </div>
-            <span className="text-[#C5C4FF]">→</span>
+            <span className="text-[#C5C4FF] hidden sm:inline">→</span>
             <div className="flex items-center gap-1.5 text-[#808191] cursor-pointer hover:text-[#004AC1]" onClick={() => onNavigate('results')}>
               <span className="w-5 h-5 rounded-full bg-[#E0E0FF] text-[#5C5D69] text-[10px] flex items-center justify-center font-bold">4</span>
               <span>4. Results</span>

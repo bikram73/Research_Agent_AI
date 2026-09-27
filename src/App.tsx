@@ -47,13 +47,13 @@ export default function App() {
 
         {/* Main Container */}
         <div className="flex-1 flex max-w-7xl w-full mx-auto">
-          <main className="flex-1 w-full min-w-0 p-4 sm:p-6 lg:p-8 pb-16 md:pb-8 focus:outline-none transition-all">
+          <main className="flex-1 w-full min-w-0 px-3 sm:px-6 lg:px-8 py-4 sm:py-6 pb-24 lg:pb-10 focus:outline-none transition-all">
             {renderActiveView()}
           </main>
         </div>
 
         {/* Global Compact Footer */}
-        <div className="pb-16 md:pb-0">
+        <div className="pb-20 lg:pb-0">
           <Footer currentView={currentView} onNavigate={setCurrentView} />
         </div>
 
