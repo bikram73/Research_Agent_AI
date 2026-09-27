@@ -1,5 +1,8 @@
 # 📊 Research Agent AI - Technical Report & Benchmarking
 
+> 🌐 **Live Demo:** [https://research-agent-ai.netlify.app/](https://research-agent-ai.netlify.app/)  
+> 💻 **GitHub Repository:** [https://github.com/bikram73/Research_Agent_AI](https://github.com/bikram73/Research_Agent_AI)
+
 ## Executive Summary
 This technical report evaluates the document parsing accuracy, retrieval precision, latency profiles, anti-hallucination verification, and client-side computational efficiency of **Research Agent AI**.
 

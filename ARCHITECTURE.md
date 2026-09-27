@@ -2,6 +2,9 @@
 
 This document outlines the complete architectural design, data pipelines, retrieval-augmented generation (RAG) mechanics, client-side processing workflows, and infrastructure for **Research Agent AI**.
 
+> 🌐 **Live Demo:** [https://research-agent-ai.netlify.app/](https://research-agent-ai.netlify.app/)  
+> 💻 **GitHub Repository:** [https://github.com/bikram73/Research_Agent_AI](https://github.com/bikram73/Research_Agent_AI)
+
 ---
 
 ## 📑 Architecture Overview

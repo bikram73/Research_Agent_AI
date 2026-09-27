@@ -3,15 +3,25 @@
 # 🔬 Research Agent AI
 ### *Autonomous Document Ingestion, Semantic Chunking & Citation-Grounded Synthesis Engine*
 
+[![Live Demo](https://img.shields.io/badge/🚀%20Live%20Demo-research--agent--ai.netlify.app-00C7B7?style=for-the-badge&logo=netlify&logoColor=white)](https://research-agent-ai.netlify.app/)
+[![GitHub Repository](https://img.shields.io/badge/📦%20GitHub_Repo-bikram73%2FResearch__Agent__AI-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/bikram73/Research_Agent_AI)
+
+<br/>
+
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19.0-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-6.2-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.1-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![Netlify Status](https://img.shields.io/badge/Netlify-Ready-00C7B7?style=for-the-badge&logo=netlify&logoColor=white)](https://www.netlify.com/)
+[![Netlify Status](https://img.shields.io/badge/Netlify-Deployed-00C7B7?style=for-the-badge&logo=netlify&logoColor=white)](https://research-agent-ai.netlify.app/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
 <p align="center">
   <b>Research Agent AI</b> is an enterprise-grade academic research intelligence workstation. It autonomously ingests, parses, chunks, and synthesizes complex research papers, technical reports, and multi-format documents with <b>zero hallucination</b>, exact page-coordinate citations, and deep semantic verification.
+</p>
+
+<p align="center">
+  🌐 <b>Live Production App:</b> <a href="https://research-agent-ai.netlify.app/"><b>https://research-agent-ai.netlify.app/</b></a> &nbsp;•&nbsp;
+  💻 <b>GitHub Source Code:</b> <a href="https://github.com/bikram73/Research_Agent_AI"><b>https://github.com/bikram73/Research_Agent_AI</b></a>
 </p>
 
 </div>
@@ -24,6 +34,7 @@
 
 | **<div align="center">📖 Description</div>** | **<div align="center">🚀 Section</div>** |
 |--------------------------------------------------------------|------------------------------------------------|
+| <div align="center">**Access the live production deployment and official GitHub repository.** 👉</div> | <div align="center"><a href="#quick-links"><img src="https://img.shields.io/badge/🔗%20Live%20Demo%20%26%20Repo-10B981?style=for-the-badge" /></a></div> |
 | <div align="center">**View the project features and capabilities.** 👉</div> | <div align="center"><a href="#features"><img src="https://img.shields.io/badge/✨%20Features-4F46E5?style=for-the-badge" /></a></div> |
 | <div align="center">**View the technologies, frameworks, and programming languages used.** 👉</div> | <div align="center"><a href="#tech-stack"><img src="https://img.shields.io/badge/🛠️%20Tech%20Stack-0891B2?style=for-the-badge" /></a></div> |
 | <div align="center">**Explore the project's folder and file organization.** 👉</div> | <div align="center"><a href="#file-structure"><img src="https://img.shields.io/badge/📂%20File%20Structure-10B981?style=for-the-badge" /></a></div> |
@@ -38,6 +49,16 @@
 | <div align="center">**Review test execution, linting rules, and type verification.** 👉</div> | <div align="center"><a href="#testing"><img src="https://img.shields.io/badge/🧪%20Testing%20%26%20QA-6366F1?style=for-the-badge" /></a></div> |
 
 </div>
+
+---
+
+<a id="quick-links"></a>
+## 🔗 Live Demo & Source Code
+
+| Resource | Direct Link | Status / Badge |
+| :--- | :--- | :--- |
+| **🌐 Production App (Netlify)** | [https://research-agent-ai.netlify.app/](https://research-agent-ai.netlify.app/) | [![Netlify](https://img.shields.io/badge/Status-Live%20Online-00C7B7?style=flat-square&logo=netlify&logoColor=white)](https://research-agent-ai.netlify.app/) |
+| **💻 GitHub Repository** | [https://github.com/bikram73/Research_Agent_AI](https://github.com/bikram73/Research_Agent_AI) | [![GitHub](https://img.shields.io/badge/GitHub-bikram73%2FResearch__Agent__AI-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/bikram73/Research_Agent_AI) |
 
 ---
 
@@ -165,8 +186,8 @@
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/your-username/research-agent-ai.git
-cd research-agent-ai
+git clone https://github.com/bikram73/Research_Agent_AI.git
+cd Research_Agent_AI
 ```
 
 ### 2. Install Dependencies
@@ -327,10 +348,21 @@ For in-depth analysis and methodology, see the [📊 Technical Report](./TECHNIC
 <a id="deployment"></a>
 ## ☁️ Deployment Guide
 
+### 🚀 Official Production Instance
+- **Live Netlify URL**: [https://research-agent-ai.netlify.app/](https://research-agent-ai.netlify.app/)
+- **GitHub Repository**: [https://github.com/bikram73/Research_Agent_AI](https://github.com/bikram73/Research_Agent_AI)
+
+The production build is continuously integrated and deployed automatically from the `main` branch to Netlify.
+
 ### Deploying to Netlify (Recommended)
 
-1. **Push your code to GitHub / GitLab**.
-2. **Log into Netlify** and select **"Add new site"** &rarr; **"Import an existing project"**.
+1. **Push your code to GitHub**:
+   ```bash
+   git remote add origin https://github.com/bikram73/Research_Agent_AI.git
+   git branch -M main
+   git push -u origin main
+   ```
+2. **Log into Netlify** and select **"Add new site"** &rarr; **"Import an existing project"** &rarr; select `bikram73/Research_Agent_AI`.
 3. Netlify will read `netlify.toml` automatically:
    - **Build Command**: `npm run build`
    - **Publish Directory**: `dist`
