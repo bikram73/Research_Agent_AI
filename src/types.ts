@@ -74,6 +74,20 @@ export interface CitationData {
   sourceTitle: string;
 }
 
+export interface HistoryRecord {
+  id: string;
+  query: string;
+  title: string;
+  timestamp: number;
+  dateFormatted: string;
+  confidenceScore: number;
+  findingsCount: number;
+  citationsCount: number;
+  sourcesCount: number;
+  isInsufficientContext?: boolean;
+  result: ResearchResult;
+}
+
 export interface PipelineStep {
   id: number;
   name: string;

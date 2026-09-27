@@ -97,7 +97,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate }) => {
                 : 'text-[#5C5D69] hover:text-[#191B23]'
             }`}
           >
-            Library
+            History & Library
           </button>
           <button
             onClick={() => onNavigate('about')}

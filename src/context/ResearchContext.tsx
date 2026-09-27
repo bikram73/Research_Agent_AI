@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState } from 'react';
-import { SourceFile, ResearchResult, DocumentChunk } from '../types';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { SourceFile, ResearchResult, DocumentChunk, HistoryRecord } from '../types';
 import { extractTextFromFile, chunkDocument, synthesizeResearch } from '../services/documentParser';
 
 interface ResearchContextType {
@@ -8,12 +8,16 @@ interface ResearchContextType {
   currentQuery: string;
   isProcessing: boolean;
   uploadStatusMessage: string | null;
+  history: HistoryRecord[];
   setCurrentQuery: (q: string) => void;
   uploadFiles: (files: File[]) => Promise<void>;
   removeSource: (id: string) => void;
   clearAllSources: () => void;
   loadQATestDataset: () => void;
   runInvestigation: (query?: string) => Promise<ResearchResult>;
+  loadHistoryItem: (id: string) => void;
+  deleteHistoryItem: (id: string) => void;
+  clearAllHistory: () => void;
 }
 
 // Controlled Reference Research Dataset for testing & demonstration
@@ -189,6 +193,19 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [uploadStatusMessage, setUploadStatusMessage] = useState<string | null>(null);
 
+  // Search & Investigation History stored in browser LocalStorage (initially empty)
+  const [history, setHistory] = useState<HistoryRecord[]>(() => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const stored = localStorage.getItem('research_agent_history_v1');
+        return stored ? JSON.parse(stored) : [];
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  });
+
   const [activeResult, setActiveResult] = useState<ResearchResult>(() =>
     synthesizeResearch('', [])
   );
@@ -316,6 +333,39 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setTimeout(() => setUploadStatusMessage(null), 3000);
   };
 
+  const loadHistoryItem = (id: string) => {
+    const item = history.find((h) => h.id === id);
+    if (item) {
+      setCurrentQuery(item.query);
+      setActiveResult(item.result);
+    }
+  };
+
+  const deleteHistoryItem = (id: string) => {
+    setHistory((prev) => {
+      const updated = prev.filter((h) => h.id !== id);
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          localStorage.setItem('research_agent_history_v1', JSON.stringify(updated));
+        }
+      } catch (err) {
+        console.error('LocalStorage write error:', err);
+      }
+      return updated;
+    });
+  };
+
+  const clearAllHistory = () => {
+    setHistory([]);
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.removeItem('research_agent_history_v1');
+      }
+    } catch (err) {
+      console.error('LocalStorage remove error:', err);
+    }
+  };
+
   const runInvestigation = async (query?: string): Promise<ResearchResult> => {
     const q = (query ?? currentQuery).trim();
     if (!q) {
@@ -325,6 +375,41 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setIsProcessing(true);
     const result = synthesizeResearch(q, sources);
     setActiveResult(result);
+
+    // Save to history and persist in LocalStorage
+    const newRecord: HistoryRecord = {
+      id: `hist-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      query: q,
+      title: result.title,
+      timestamp: Date.now(),
+      dateFormatted: new Date().toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+      confidenceScore: result.confidenceScore,
+      findingsCount: result.coreFindings.length,
+      citationsCount: result.citations.length,
+      sourcesCount: result.groundedSourcesCount,
+      isInsufficientContext: result.isInsufficientContext,
+      result,
+    };
+
+    setHistory((prev) => {
+      // Avoid duplicate consecutive identical queries, keep top 100 history items
+      const filtered = prev.filter((h) => h.query.toLowerCase() !== q.toLowerCase());
+      const updated = [newRecord, ...filtered].slice(0, 100);
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          localStorage.setItem('research_agent_history_v1', JSON.stringify(updated));
+        }
+      } catch (err) {
+        console.error('LocalStorage save error:', err);
+      }
+      return updated;
+    });
+
     setIsProcessing(false);
     return result;
   };
@@ -337,12 +422,16 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         currentQuery,
         isProcessing,
         uploadStatusMessage,
+        history,
         setCurrentQuery,
         uploadFiles,
         removeSource,
         clearAllSources,
         loadQATestDataset,
         runInvestigation,
+        loadHistoryItem,
+        deleteHistoryItem,
+        clearAllHistory,
       }}
     >
       {children}
