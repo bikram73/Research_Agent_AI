@@ -60,6 +60,16 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate }) => {
             Import Sources
           </button>
           <button
+            onClick={() => onNavigate('pipeline')}
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
+              currentView === 'pipeline'
+                ? 'bg-white text-[#004AC1] shadow-sm'
+                : 'text-[#5C5D69] hover:text-[#191B23]'
+            }`}
+          >
+            Pipeline
+          </button>
+          <button
             onClick={() => onNavigate('investigate')}
             className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
               currentView === 'investigate'
@@ -78,16 +88,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate }) => {
             }`}
           >
             Results
-          </button>
-          <button
-            onClick={() => onNavigate('pipeline')}
-            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
-              currentView === 'pipeline'
-                ? 'bg-white text-[#004AC1] shadow-sm'
-                : 'text-[#5C5D69] hover:text-[#191B23]'
-            }`}
-          >
-            Pipeline
           </button>
           <button
             onClick={() => onNavigate('library')}

@@ -47,6 +47,17 @@ export const InvestigateView: React.FC<InvestigateViewProps> = ({ onNavigate }) 
     },
   ];
 
+  const handleSelectAndRunTopic = async (topic: string) => {
+    setCurrentQuery(topic);
+    setValidationError(null);
+    try {
+      await runInvestigation(topic);
+      onNavigate('results');
+    } catch (err: any) {
+      setValidationError(err?.message || 'Error executing research investigation.');
+    }
+  };
+
   const handleSelectTopic = (topic: string) => {
     setCurrentQuery(topic);
     setValidationError(null);
@@ -98,6 +109,29 @@ export const InvestigateView: React.FC<InvestigateViewProps> = ({ onNavigate }) 
         className="hidden"
         onChange={handleFileAttach}
       />
+
+      {/* Workflow Progression Stepper */}
+      <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2 text-emerald-700 font-semibold cursor-pointer hover:underline" onClick={() => onNavigate('upload')}>
+          <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">✓</span>
+          <span>1. Import Sources</span>
+        </div>
+        <span className="text-blue-300 hidden sm:inline">→</span>
+        <div className="flex items-center gap-2 text-emerald-700 font-semibold cursor-pointer hover:underline" onClick={() => onNavigate('pipeline')}>
+          <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">✓</span>
+          <span>2. Pipeline Architecture</span>
+        </div>
+        <span className="text-blue-300 hidden sm:inline">→</span>
+        <div className="flex items-center gap-2 text-[#004AC1] font-bold bg-white px-3 py-1 rounded-full shadow-xs border border-blue-200">
+          <span className="w-5 h-5 rounded-full bg-[#004AC1] text-white flex items-center justify-center text-[10px]">3</span>
+          <span>3. Search Workspace</span>
+        </div>
+        <span className="text-blue-300 hidden sm:inline">→</span>
+        <div className="flex items-center gap-2 text-gray-500 font-medium cursor-pointer hover:text-[#004AC1]" onClick={() => onNavigate('results')}>
+          <span className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center text-[10px]">4</span>
+          <span>4. Verified Results</span>
+        </div>
+      </div>
 
       {/* Title */}
       <div className="text-center space-y-2">
@@ -222,27 +256,47 @@ export const InvestigateView: React.FC<InvestigateViewProps> = ({ onNavigate }) 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <p className="text-xs font-bold text-[#808191] uppercase tracking-wider font-['JetBrains_Mono']">
-            Validated QA Test Inquiries
+            Quick Inquiries & Benchmark Questions
           </p>
-          <span className="text-[11px] text-[#004AC1] font-semibold">Click to load into query box</span>
+          <span className="text-[11px] text-[#004AC1] font-semibold">Click inquiry or press "Run" to test</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {qaCategories.map((cat, idx) => (
-            <div key={idx} className="p-4 rounded-2xl bg-white border border-[#E0E0FF] space-y-2">
-              <span className="text-[11px] font-bold text-[#004AC1] font-['JetBrains_Mono'] uppercase">
-                {cat.category}
-              </span>
-              <div className="space-y-1.5">
-                {cat.questions.map((q, qIdx) => (
-                  <button
-                    key={qIdx}
-                    onClick={() => handleSelectTopic(q)}
-                    className="w-full text-left p-2 rounded-xl bg-[#FAF8FF] hover:bg-[#F0EFFF] hover:text-[#004AC1] text-xs text-[#4A4B57] transition-all border border-[#E5E2FF]"
-                  >
-                    🔍 {q}
-                  </button>
-                ))}
+            <div key={idx} className="p-4 rounded-2xl bg-white border border-[#E0E0FF] space-y-2 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between pb-1">
+                  <span className="text-[11px] font-bold text-[#004AC1] font-['JetBrains_Mono'] uppercase">
+                    {cat.category}
+                  </span>
+                  {cat.category.includes('Negative') && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-800">
+                      Tests Refusal Guardrail
+                    </span>
+                  )}
+                </div>
+                <div className="space-y-2 pt-1">
+                  {cat.questions.map((q, qIdx) => (
+                    <div
+                      key={qIdx}
+                      className="group flex items-center justify-between gap-2 p-2 rounded-xl bg-[#FAF8FF] hover:bg-[#F0EFFF] text-xs text-[#4A4B57] transition-all border border-[#E5E2FF]"
+                    >
+                      <button
+                        onClick={() => handleSelectTopic(q)}
+                        className="text-left flex-1 hover:text-[#004AC1] font-medium cursor-pointer"
+                      >
+                        🔍 {q}
+                      </button>
+                      <button
+                        onClick={() => handleSelectAndRunTopic(q)}
+                        className="px-2.5 py-1 rounded-lg bg-[#004AC1] text-white text-[11px] font-bold opacity-80 group-hover:opacity-100 hover:bg-[#003896] transition-all cursor-pointer shrink-0"
+                        title="Run search immediately"
+                      >
+                        Run
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           ))}

@@ -81,12 +81,45 @@ export const PipelineView: React.FC<PipelineViewProps> = ({ onNavigate }) => {
           </p>
         </div>
 
-        <button
-          onClick={() => onNavigate('results')}
-          className="px-5 py-2.5 rounded-2xl bg-[#004AC1] text-white font-bold text-xs hover:bg-[#003896] shadow-md transition-all self-start md:self-auto"
-        >
-          View Generated Synthesis →
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => onNavigate('upload')}
+            className="px-4 py-2.5 rounded-2xl bg-white border border-[#E0E0FF] text-[#5C5D69] hover:text-[#191B23] font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[16px]">upload_file</span>
+            <span>Import Sources</span>
+          </button>
+          <button
+            onClick={() => onNavigate('investigate')}
+            className="px-5 py-2.5 rounded-2xl bg-[#004AC1] text-white font-bold text-xs hover:bg-[#003896] shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+          >
+            <span>Proceed to Workspace</span>
+            <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Workflow Progression Stepper */}
+      <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2 text-emerald-700 font-semibold">
+          <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">✓</span>
+          <span>1. Import Sources</span>
+        </div>
+        <span className="text-blue-300 hidden sm:inline">→</span>
+        <div className="flex items-center gap-2 text-[#004AC1] font-bold bg-white px-3 py-1 rounded-full shadow-xs border border-blue-200">
+          <span className="w-5 h-5 rounded-full bg-[#004AC1] text-white flex items-center justify-center text-[10px]">2</span>
+          <span>2. Pipeline Architecture</span>
+        </div>
+        <span className="text-blue-300 hidden sm:inline">→</span>
+        <div className="flex items-center gap-2 text-gray-500 font-medium cursor-pointer hover:text-[#004AC1]" onClick={() => onNavigate('investigate')}>
+          <span className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center text-[10px]">3</span>
+          <span>3. Search Workspace</span>
+        </div>
+        <span className="text-blue-300 hidden sm:inline">→</span>
+        <div className="flex items-center gap-2 text-gray-500 font-medium cursor-pointer hover:text-[#004AC1]" onClick={() => onNavigate('results')}>
+          <span className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center text-[10px]">4</span>
+          <span>4. Verified Results</span>
+        </div>
       </div>
 
       {/* Main Flow Architecture */}
@@ -173,6 +206,25 @@ export const PipelineView: React.FC<PipelineViewProps> = ({ onNavigate }) => {
             <p className="text-base font-bold text-blue-400 mt-1">Strict Grounding Enabled</p>
           </div>
         </div>
+      </div>
+
+      {/* Bottom Step Progression CTA */}
+      <div className="p-6 rounded-3xl bg-white border border-[#E0E0FF] shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <h3 className="text-sm font-bold text-[#191B23] font-['Manrope']">
+            Pipeline Validated & Ready for Inquiry
+          </h3>
+          <p className="text-xs text-[#5C5D69]">
+            Step 3 of 4: Enter search inquiries, test hypotheses, or retrieve specific findings in the workspace.
+          </p>
+        </div>
+        <button
+          onClick={() => onNavigate('investigate')}
+          className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-gradient-to-r from-[#004AC1] to-[#6366F1] hover:from-[#003896] hover:to-[#4F46E5] text-white text-xs font-bold shadow-md shadow-blue-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0"
+        >
+          <span>Open Research Workspace</span>
+          <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+        </button>
       </div>
 
     </div>

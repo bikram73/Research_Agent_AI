@@ -13,10 +13,10 @@ export const Sidebar: React.FC<SidebarProps> = () => {
 export const BottomBar: React.FC<SidebarProps> = ({ currentView, onNavigate }) => {
   const items: { id: NavView; label: string; icon: string }[] = [
     { id: 'home', label: 'Home', icon: 'home' },
-    { id: 'upload', label: 'Upload', icon: 'upload_file' },
-    { id: 'investigate', label: 'Research', icon: 'travel_explore' },
+    { id: 'upload', label: 'Import', icon: 'upload_file' },
+    { id: 'pipeline', label: 'Pipeline', icon: 'hub' },
+    { id: 'investigate', label: 'Workspace', icon: 'travel_explore' },
     { id: 'results', label: 'Results', icon: 'auto_stories' },
-    { id: 'library', label: 'Library', icon: 'folder_open' },
   ];
 
   return (

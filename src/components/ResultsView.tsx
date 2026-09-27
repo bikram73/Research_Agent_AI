@@ -94,6 +94,29 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ onNavigate }) => {
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-20 font-['Work_Sans']">
       
+      {/* Workflow Progression Stepper */}
+      <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2 text-emerald-700 font-semibold cursor-pointer hover:underline" onClick={() => onNavigate('upload')}>
+          <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">✓</span>
+          <span>1. Import Sources</span>
+        </div>
+        <span className="text-blue-300 hidden sm:inline">→</span>
+        <div className="flex items-center gap-2 text-emerald-700 font-semibold cursor-pointer hover:underline" onClick={() => onNavigate('pipeline')}>
+          <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">✓</span>
+          <span>2. Pipeline Architecture</span>
+        </div>
+        <span className="text-blue-300 hidden sm:inline">→</span>
+        <div className="flex items-center gap-2 text-emerald-700 font-semibold cursor-pointer hover:underline" onClick={() => onNavigate('investigate')}>
+          <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">✓</span>
+          <span>3. Search Workspace</span>
+        </div>
+        <span className="text-blue-300 hidden sm:inline">→</span>
+        <div className="flex items-center gap-2 text-[#004AC1] font-bold bg-white px-3 py-1 rounded-full shadow-xs border border-blue-200">
+          <span className="w-5 h-5 rounded-full bg-[#004AC1] text-white flex items-center justify-center text-[10px]">4</span>
+          <span>4. Verified Results</span>
+        </div>
+      </div>
+
       {/* Top Banner Status */}
       <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-[#E0E0FF] shadow-sm">
         <div className="flex items-center gap-3">
