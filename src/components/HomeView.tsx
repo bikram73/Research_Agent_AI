@@ -9,8 +9,6 @@ interface HomeViewProps {
 export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
   const { sources, currentQuery, setCurrentQuery, runInvestigation, isProcessing } = useResearch();
   const [homeQuery, setHomeQuery] = useState(currentQuery || '');
-  const [email, setEmail] = useState('');
-  const [subscribed, setSubscribed] = useState(false);
 
   const totalChunks = sources.reduce((acc, s) => acc + (s.chunks?.length || 0), 0);
 
@@ -33,14 +31,6 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
       onNavigate('results');
     } catch {
       onNavigate('investigate');
-    }
-  };
-
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email.trim()) {
-      setSubscribed(true);
-      setEmail('');
     }
   };
 
@@ -365,41 +355,14 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
         </div>
       </section>
 
-      {/* CTA Section with Newsletter Signup */}
+      {/* CTA Section */}
       <section className="p-8 lg:p-12 rounded-3xl bg-gradient-to-r from-[#004AC1] to-[#6366F1] text-white shadow-xl text-center space-y-6">
         <h2 className="text-2xl sm:text-4xl font-extrabold font-['Manrope']">
           Ready to elevate your research?
         </h2>
         <p className="text-xs sm:text-sm text-blue-100 max-w-xl mx-auto font-['Work_Sans']">
-          Join thousands of PhDs and data scientists who have found a better way to work with zero hallucinations and authentic citations.
+          Work with zero hallucinations, authentic citations, and deterministic evidence verification.
         </p>
-        
-        {/* Newsletter Subscription Form */}
-        <div className="max-w-md mx-auto pt-2">
-          {subscribed ? (
-            <div className="p-3.5 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 text-white text-xs font-bold flex items-center justify-center gap-2">
-              <span className="material-symbols-outlined text-[18px] text-emerald-300">check_circle</span>
-              <span>You are subscribed to Research Agent AI updates!</span>
-            </div>
-          ) : (
-            <form onSubmit={handleSubscribe} className="flex gap-2">
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your academic or corporate email..."
-                className="flex-1 px-4 py-3 rounded-xl bg-white/15 border border-white/30 text-white placeholder:text-blue-100 text-xs focus:outline-none focus:ring-2 focus:ring-white"
-              />
-              <button
-                type="submit"
-                className="px-5 py-3 rounded-xl bg-white text-[#004AC1] font-bold text-xs hover:bg-blue-50 transition-all cursor-pointer shrink-0"
-              >
-                Subscribe
-              </button>
-            </form>
-          )}
-        </div>
 
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4 pt-2">
           <button
