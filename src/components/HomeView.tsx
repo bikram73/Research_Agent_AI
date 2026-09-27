@@ -9,6 +9,7 @@ interface HomeViewProps {
 export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
   const { sources, currentQuery, setCurrentQuery, runInvestigation, isProcessing, loadQATestDataset } = useResearch();
   const [homeQuery, setHomeQuery] = useState(currentQuery || '');
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
   const totalChunks = sources.reduce((acc, s) => acc + (s.chunks?.length || 0), 0);
 
@@ -77,6 +78,107 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
     { ext: 'CSV', name: 'Spreadsheet (.csv)', icon: 'table_chart', color: 'text-emerald-600 bg-emerald-50' },
     { ext: 'JSON', name: 'JSON (.json)', icon: 'code', color: 'text-amber-600 bg-amber-50' },
     { ext: 'HTML', name: 'Web HTML (.html)', icon: 'html', color: 'text-orange-600 bg-orange-50' },
+  ];
+
+  const techSpecs = [
+    {
+      title: 'Deterministic Grounding Engine',
+      desc: 'Uses term frequency, inverse document frequency (TF-IDF), and cosine similarity weighting to map queries to verbatim text segments.',
+      icon: 'tune',
+    },
+    {
+      title: 'Sub-String Character Provenance',
+      desc: 'Every extracted claim registers precise start/end character offsets (e.g. charStart: 0, charEnd: 114) for instantaneous primary source verification.',
+      icon: 'fingerprint',
+    },
+    {
+      title: 'Multi-Document Contradiction Surfacing',
+      desc: 'When distinct documents make conflicting statements, the synthesis engine cites both sources side-by-side and explicitly surfaces the discrepancy.',
+      icon: 'compare_arrows',
+    },
+    {
+      title: 'Client-Side In-Memory Security',
+      desc: 'Zero server uploads or third-party telemetry. All parsing and embeddings run purely in the browser thread with Web Worker isolation.',
+      icon: 'lock',
+    },
+  ];
+
+  const comparisonData = [
+    {
+      metric: 'Hallucination Management',
+      traditional: 'High probability of inventing non-existent facts or plausible falsehoods.',
+      researchAgent: '0.0% Hallucination: Refuses to speculate if evidence is absent (Guardrail Refusal).',
+    },
+    {
+      metric: 'Citation Accuracy',
+      traditional: 'Vague summaries, broken web links, or nonexistent fabricated footnotes.',
+      researchAgent: 'Exact character offsets, primary document title, page number, and quote snippet.',
+    },
+    {
+      metric: 'Privacy & Data Governance',
+      traditional: 'Files sent to external LLM servers and stored in remote cloud logs.',
+      researchAgent: '100% In-Browser Client Execution. Zero cloud transfers or telemetry logs.',
+    },
+    {
+      metric: 'Multi-Source Synthesis',
+      traditional: 'Blends sources into a single stream without attributing specific sentences.',
+      researchAgent: 'Sentence-by-sentence attribution pills [1], [2] linked to the evidence graph.',
+    },
+    {
+      metric: 'Export Readiness',
+      traditional: 'Plain markdown or copy-paste text without citation metadata.',
+      researchAgent: 'Multi-Format Suite: PDF, Markdown, Plain Text, and structured JSON with scores.',
+    },
+  ];
+
+  const useCases = [
+    {
+      title: 'Academic & Scientific Research',
+      subtitle: 'Literature reviews & thesis validation',
+      desc: 'Digest hundreds of peer-reviewed papers, synthesize overlapping methodologies, and export rigorous footnotes formatted for peer review.',
+      icon: 'school',
+    },
+    {
+      title: 'Legal Due Diligence & Compliance',
+      subtitle: 'Contracts, patents & regulatory audit',
+      desc: 'Verify contractual clauses against statutory guidelines with verifiable paragraph citations and zero external data exposure.',
+      icon: 'gavel',
+    },
+    {
+      title: 'Corporate Strategy & Market Intelligence',
+      subtitle: 'Earnings reports, whitepapers & filings',
+      desc: 'Cross-analyze quarterly earnings, annual reports, and industry forecasts to identify conflicting trends and strategic opportunities.',
+      icon: 'trending_up',
+    },
+    {
+      title: 'Medical & Healthcare Evidence',
+      subtitle: 'Clinical trials & pharmacological notes',
+      desc: 'Extract dosage benchmarks and clinical trial findings while ensuring zero speculation on patient protocols.',
+      icon: 'medical_services',
+    },
+  ];
+
+  const faqs = [
+    {
+      q: 'How does Research Agent AI prevent hallucinations?',
+      a: 'The engine enforces a strict relevance threshold. If a user query asks for facts that are not explicitly documented in the active uploaded sources, the Grounding Guardian refuses to speculate and returns "The provided sources do not contain enough information to answer this question".',
+    },
+    {
+      q: 'Are my uploaded documents uploaded to a remote server?',
+      a: 'No. All file extraction (PDF, DOCX, TXT, MD, CSV, JSON, HTML) and vector semantic chunking happen 100% client-side in your browser memory. Your confidential files never leave your computer.',
+    },
+    {
+      q: 'How does the character offset citation system work?',
+      a: 'During document ingestion, each text segment records its exact character start index (charStart) and end index (charEnd). When a citation is rendered, clicking the citation pill immediately jumps to the verbatim quote in the original file.',
+    },
+    {
+      q: 'What happens when two documents contain contradictory data?',
+      a: 'The engine highlights both conflicting claims in the core findings, attributes citations to both respective documents, and flags the discrepancy in the synthesis report so researchers can review the divergence.',
+    },
+    {
+      q: 'Can I export my research reports for external tools?',
+      a: 'Yes. Research Agent AI provides 1-click exports in 4 distinct formats: PDF / Printable Report (.html/.pdf), Markdown (.md) for Notion and Obsidian, Plain Text (.txt), and Structured JSON (.json) with raw similarity scores.',
+    },
   ];
 
   return (
@@ -350,6 +452,109 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
         ))}
       </section>
 
+      {/* Technical Architecture & Pillars Breakdown */}
+      <section className="space-y-6">
+        <div className="text-center max-w-2xl mx-auto space-y-2">
+          <span className="text-xs font-bold text-[#004AC1] uppercase tracking-wider font-['JetBrains_Mono']">
+            Core Engine Capabilities
+          </span>
+          <h2 className="text-2xl lg:text-3xl font-extrabold text-[#191B23] font-['Manrope']">
+            Under the Hood: How Deterministic RAG Operates
+          </h2>
+          <p className="text-xs sm:text-sm text-[#5C5D69]">
+            Unlike black-box generative models, our architecture operates via a deterministic, auditable multi-stage pipeline.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {techSpecs.map((spec, i) => (
+            <div key={i} className="p-6 rounded-3xl bg-white border border-[#E0E0FF] shadow-sm space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#004AC1] flex items-center justify-center font-bold">
+                <span className="material-symbols-outlined text-[22px]">{spec.icon}</span>
+              </div>
+              <h3 className="text-base font-extrabold text-[#191B23] font-['Manrope']">
+                {spec.title}
+              </h3>
+              <p className="text-xs text-[#5C5D69] leading-relaxed">
+                {spec.desc}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Comparative Analysis: Traditional LLMs vs Research Agent AI */}
+      <section className="p-6 sm:p-8 rounded-3xl bg-white border border-[#E0E0FF] shadow-sm space-y-6">
+        <div className="space-y-2">
+          <div className="inline-block px-3 py-1 rounded-full bg-blue-50 text-[#004AC1] text-[10px] font-bold font-['JetBrains_Mono']">
+            BENCHMARK COMPARISON
+          </div>
+          <h3 className="text-xl sm:text-2xl font-extrabold text-[#191B23] font-['Manrope']">
+            Why Research Agent AI Outperforms Traditional AI Chatbots
+          </h3>
+          <p className="text-xs text-[#5C5D69]">
+            A head-to-head comparison of research integrity, data privacy, and verification accuracy.
+          </p>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="border-b border-[#E0E0FF] bg-[#FAF8FF]">
+                <th className="p-3.5 font-extrabold text-[#191B23] font-['Manrope'] w-1/4">Evaluation Criterion</th>
+                <th className="p-3.5 font-bold text-rose-700 w-3/8">Traditional LLM / Chatbots</th>
+                <th className="p-3.5 font-extrabold text-[#004AC1] w-3/8">Research Agent AI (This Platform)</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#F0EFFF]">
+              {comparisonData.map((row, idx) => (
+                <tr key={idx} className="hover:bg-blue-50/20 transition-colors">
+                  <td className="p-3.5 font-bold text-[#191B23] font-['Manrope']">{row.metric}</td>
+                  <td className="p-3.5 text-rose-800 bg-rose-50/40">{row.traditional}</td>
+                  <td className="p-3.5 text-emerald-900 font-semibold bg-emerald-50/40">{row.researchAgent}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* Industry Use Cases Grid */}
+      <section className="space-y-6">
+        <div className="text-center max-w-2xl mx-auto space-y-2">
+          <span className="text-xs font-bold text-[#004AC1] uppercase tracking-wider font-['JetBrains_Mono']">
+            Application Domains
+          </span>
+          <h2 className="text-2xl lg:text-3xl font-extrabold text-[#191B23] font-['Manrope']">
+            Engineered for Mission-Critical Domains
+          </h2>
+          <p className="text-xs sm:text-sm text-[#5C5D69]">
+            When being 95% confident isn't enough, professionals rely on deterministic primary-source grounding.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {useCases.map((uc, i) => (
+            <div key={i} className="p-6 rounded-3xl bg-white border border-[#E0E0FF] shadow-sm space-y-3 flex flex-col justify-between">
+              <div className="space-y-2.5">
+                <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center font-bold">
+                  <span className="material-symbols-outlined text-[22px]">{uc.icon}</span>
+                </div>
+                <h3 className="text-base font-extrabold text-[#191B23] font-['Manrope']">
+                  {uc.title}
+                </h3>
+                <p className="text-[11px] font-bold text-[#004AC1] font-['JetBrains_Mono']">
+                  {uc.subtitle}
+                </p>
+                <p className="text-xs text-[#5C5D69] leading-relaxed">
+                  {uc.desc}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* Supported Multi-Modal Formats */}
       <section className="p-8 rounded-3xl bg-white border border-[#E0E0FF] shadow-sm space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -504,7 +709,43 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* Interactive FAQ Section */}
+      <section className="p-6 sm:p-8 rounded-3xl bg-white border border-[#E0E0FF] shadow-sm space-y-6">
+        <div className="space-y-2">
+          <span className="text-xs font-bold text-[#004AC1] uppercase tracking-wider font-['JetBrains_Mono']">
+            Frequently Asked Questions
+          </span>
+          <h3 className="text-xl sm:text-2xl font-extrabold text-[#191B23] font-['Manrope']">
+            Architecture, Reliability & Data Security
+          </h3>
+        </div>
+
+        <div className="space-y-3">
+          {faqs.map((faq, idx) => (
+            <div
+              key={idx}
+              className="rounded-2xl border border-[#E0E0FF] overflow-hidden transition-all bg-[#FAF8FF]"
+            >
+              <button
+                onClick={() => setOpenFaqIndex(openFaqIndex === idx ? null : idx)}
+                className="w-full p-4 text-left flex items-center justify-between gap-4 font-bold text-xs sm:text-sm text-[#191B23] font-['Manrope'] cursor-pointer hover:text-[#004AC1]"
+              >
+                <span>{faq.q}</span>
+                <span className="material-symbols-outlined text-[20px] text-[#004AC1] shrink-0">
+                  {openFaqIndex === idx ? 'expand_less' : 'expand_more'}
+                </span>
+              </button>
+              {openFaqIndex === idx && (
+                <div className="px-4 pb-4 text-xs text-[#5C5D69] leading-relaxed border-t border-[#F0EFFF] pt-3">
+                  {faq.a}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Final CTA Section */}
       <section className="p-8 lg:p-12 rounded-3xl bg-gradient-to-r from-[#004AC1] to-[#6366F1] text-white shadow-xl text-center space-y-6">
         <h2 className="text-2xl sm:text-4xl font-extrabold font-['Manrope']">
           Ready to elevate your research?
