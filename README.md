@@ -13,7 +13,6 @@
 [![Vite](https://img.shields.io/badge/Vite-6.2-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.1-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![Netlify Status](https://img.shields.io/badge/Netlify-Deployed-00C7B7?style=for-the-badge&logo=netlify&logoColor=white)](https://research-agent-ai.netlify.app/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
 <p align="center">
   <b>Research Agent AI</b> is an academic research intelligence workstation. It autonomously ingests, parses, chunks, and synthesizes complex research papers, technical reports, and multi-format documents with <b>evidence-grounded answer guardrails</b>, verifiable page-level references with character offsets, and deterministic TF-vector cosine retrieval with domain synonym expansion.
@@ -413,10 +412,6 @@ npm run build
 Ensures production bundling and asset hashing complete without warnings.
 
 ---
-
-## 📄 License
-
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
 <div align="center">
   <sub>Built with ❤️ for academic researchers, data scientists, and engineers worldwide.</sub>

@@ -94,10 +94,6 @@ export const Footer: React.FC<FooterProps> = ({ currentView, onNavigate }) => {
             </svg>
             <span>GitHub</span>
           </a>
-
-          <span className="text-[10px] font-mono text-[#808191] hidden lg:inline px-2 py-0.5 rounded bg-[#FAF8FF] border border-[#E0E0FF]">
-            MIT License
-          </span>
         </div>
       </div>
     </footer>
