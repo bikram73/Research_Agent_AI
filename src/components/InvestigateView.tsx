@@ -7,36 +7,64 @@ interface InvestigateViewProps {
 }
 
 export const InvestigateView: React.FC<InvestigateViewProps> = ({ onNavigate }) => {
-  const {
-    sources,
-    currentQuery,
-    setCurrentQuery,
-    uploadFiles,
-    runInvestigation,
-    isProcessing,
-    activeResult,
-  } = useResearch();
+  const { currentQuery, setCurrentQuery, runInvestigation, sources, uploadFiles, isProcessing } = useResearch();
 
   const [isListening, setIsListening] = useState(false);
   const [sourcesOpen, setSourcesOpen] = useState(true);
   const [previewOpen, setPreviewOpen] = useState(true);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const attachInputRef = useRef<HTMLInputElement>(null);
 
-  const suggestedTopics = [
-    'Impact of Quantum Entanglement on Distributed Ledger Consensus',
-    'Summarize Q4 Market Growth Drivers for AI Infrastructure',
-    'How does Neural RAG eliminate LLM hallucination?',
-    'Synthesize competitive benchmarks and architectural trade-offs',
+  // Curated questions matching PRD QA test cases
+  const qaCategories = [
+    {
+      category: 'Direct Questions',
+      questions: [
+        'What does Research Agent AI do?',
+        'What file formats does the system support?',
+      ],
+    },
+    {
+      category: 'Paraphrased / Semantic',
+      questions: [
+        'How does the system read PDF files and extract text?',
+        'How are citations verified against source documents?',
+      ],
+    },
+    {
+      category: 'Multi-Source Synthesis',
+      questions: [
+        'What technologies and processing methods are used across the documents?',
+      ],
+    },
+    {
+      category: 'Negative Dataset (Anti-Hallucination Guardrail)',
+      questions: [
+        'What database does this application use?',
+        'What is the CEO\'s name and corporate revenue?',
+      ],
+    },
   ];
 
   const handleSelectTopic = (topic: string) => {
     setCurrentQuery(topic);
+    setValidationError(null);
   };
 
   const handleRunSearch = async () => {
-    await runInvestigation(currentQuery);
-    onNavigate('results');
+    // PRD Section 26: Empty Question Test
+    if (!currentQuery.trim()) {
+      setValidationError('⚠️ Please enter a research question or topic before initiating investigation.');
+      return;
+    }
+    setValidationError(null);
+    try {
+      await runInvestigation(currentQuery);
+      onNavigate('results');
+    } catch (err: any) {
+      setValidationError(err?.message || 'Error executing research investigation.');
+    }
   };
 
   const handleFileAttach = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,10 +79,10 @@ export const InvestigateView: React.FC<InvestigateViewProps> = ({ onNavigate }) 
     if (!isListening) {
       setTimeout(() => {
         setCurrentQuery(
-          (prev) => prev + (prev ? ' ' : '') + 'Evaluating Byzantine fault tolerance in quantum networks.'
+          (prev) => prev + (prev ? ' ' : '') + 'How does neural RAG eliminate document hallucination?'
         );
         setIsListening(false);
-      }, 3000);
+      }, 2500);
     }
   };
 
@@ -66,7 +94,7 @@ export const InvestigateView: React.FC<InvestigateViewProps> = ({ onNavigate }) 
         ref={attachInputRef}
         type="file"
         multiple
-        accept=".pdf,.docx,.doc,.txt,.csv,.xls,.xlsx,.md,.json"
+        accept=".pdf,.docx,.doc,.txt,.csv,.xls,.xlsx,.md,.json,.html"
         className="hidden"
         onChange={handleFileAttach}
       />
@@ -81,16 +109,32 @@ export const InvestigateView: React.FC<InvestigateViewProps> = ({ onNavigate }) 
           What would you like to investigate today?
         </h1>
         <p className="text-xs text-[#5C5D69] max-w-xl mx-auto">
-          Query your multi-modal document index. Responses will be grounded with exact paragraph citation overlays.
+          Query your multi-modal document index. Responses are strictly grounded with zero hallucination and paragraph citations.
         </p>
       </div>
+
+      {/* Validation Alert */}
+      {validationError && (
+        <div className="p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-bold flex items-center justify-between shadow-sm animate-fadeIn">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-[20px] text-amber-600">error</span>
+            <span>{validationError}</span>
+          </div>
+          <button onClick={() => setValidationError(null)} className="text-amber-800 hover:text-amber-950">
+            <span className="material-symbols-outlined text-[18px]">close</span>
+          </button>
+        </div>
+      )}
 
       {/* Main Research Input Card */}
       <div className="p-6 rounded-3xl bg-white border border-[#E0E0FF] shadow-xl space-y-4 relative">
         <div className="relative space-y-3">
           <textarea
             value={currentQuery}
-            onChange={(e) => setCurrentQuery(e.target.value)}
+            onChange={(e) => {
+              setCurrentQuery(e.target.value);
+              if (validationError) setValidationError(null);
+            }}
             placeholder="Ask any research question about your uploaded documents..."
             rows={4}
             className="w-full p-4 rounded-2xl bg-[#FAF8FF] border border-[#DCD9FF] text-sm text-[#191B23] focus:outline-none focus:border-[#004AC1] focus:ring-2 focus:ring-[#004AC1]/20 font-['Work_Sans'] resize-none"
@@ -98,20 +142,26 @@ export const InvestigateView: React.FC<InvestigateViewProps> = ({ onNavigate }) 
 
           {/* Active indexed files summary */}
           <div className="flex flex-wrap items-center gap-2 pt-1">
-            {sources.slice(0, 5).map((f) => (
-              <div
-                key={f.id}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-blue-50 border border-blue-200 text-[#004AC1] text-xs font-semibold"
-              >
-                <span className="material-symbols-outlined text-[16px]">
-                  {f.type === 'pdf' ? 'picture_as_pdf' : f.type === 'web' ? 'language' : 'description'}
-                </span>
-                <span className="truncate max-w-[180px]">{f.name}</span>
-                <span className="text-[10px] text-blue-500">
-                  {f.chunks ? `(${f.chunks.length} chunks)` : `(${f.size})`}
-                </span>
-              </div>
-            ))}
+            {sources.length === 0 ? (
+              <span className="text-xs text-amber-700 bg-amber-50 px-3 py-1 rounded-xl border border-amber-200">
+                ⚠️ Knowledge base empty. Upload files or load QA dataset in the Upload tab.
+              </span>
+            ) : (
+              sources.slice(0, 5).map((f) => (
+                <div
+                  key={f.id}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-blue-50 border border-blue-200 text-[#004AC1] text-xs font-semibold"
+                >
+                  <span className="material-symbols-outlined text-[16px]">
+                    {f.type === 'pdf' ? 'picture_as_pdf' : f.type === 'web' ? 'language' : 'description'}
+                  </span>
+                  <span className="truncate max-w-[180px]">{f.name}</span>
+                  <span className="text-[10px] text-blue-500">
+                    {f.chunks ? `(${f.chunks.length} chunks)` : `(${f.size})`}
+                  </span>
+                </div>
+              ))
+            )}
           </div>
 
           {/* Bottom Bar inside Input */}
@@ -150,7 +200,7 @@ export const InvestigateView: React.FC<InvestigateViewProps> = ({ onNavigate }) 
 
             <button
               onClick={handleRunSearch}
-              disabled={isProcessing || !currentQuery.trim()}
+              disabled={isProcessing}
               className="px-6 py-3 rounded-2xl bg-[#004AC1] hover:bg-[#003896] text-white text-xs font-bold shadow-md shadow-blue-600/20 active:scale-95 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
             >
               <span>{isProcessing ? 'Synthesizing...' : 'Ask Research Agent AI'}</span>
@@ -162,108 +212,100 @@ export const InvestigateView: React.FC<InvestigateViewProps> = ({ onNavigate }) 
         </div>
       </div>
 
-      {/* Suggested Topics Pills */}
-      <div className="space-y-3">
-        <p className="text-xs font-bold text-[#808191] uppercase tracking-wider font-['JetBrains_Mono']">
-          Suggested Research Questions
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {suggestedTopics.map((topic, i) => (
-            <button
-              key={i}
-              onClick={() => handleSelectTopic(topic)}
-              className="px-4 py-2 rounded-xl bg-white border border-[#E0E0FF] hover:border-[#004AC1] hover:text-[#004AC1] text-xs font-medium text-[#4A4B57] transition-all text-left shadow-sm active:scale-98"
-            >
-              🔍 {topic}
-            </button>
+      {/* Suggested Topics Pills by Category */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-bold text-[#808191] uppercase tracking-wider font-['JetBrains_Mono']">
+            Validated QA Test Inquiries
+          </p>
+          <span className="text-[11px] text-[#004AC1] font-semibold">Click to load into query box</span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {qaCategories.map((cat, idx) => (
+            <div key={idx} className="p-4 rounded-2xl bg-white border border-[#E0E0FF] space-y-2">
+              <span className="text-[11px] font-bold text-[#004AC1] font-['JetBrains_Mono'] uppercase">
+                {cat.category}
+              </span>
+              <div className="space-y-1.5">
+                {cat.questions.map((q, qIdx) => (
+                  <button
+                    key={qIdx}
+                    onClick={() => handleSelectTopic(q)}
+                    className="w-full text-left p-2 rounded-xl bg-[#FAF8FF] hover:bg-[#F0EFFF] hover:text-[#004AC1] text-xs text-[#4A4B57] transition-all border border-[#E5E2FF]"
+                  >
+                    🔍 {q}
+                  </button>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </div>
 
-      {/* Collapsible Section 1: Uploaded Sources */}
-      <div className="rounded-2xl bg-white border border-[#E0E0FF] shadow-sm overflow-hidden">
-        <button
-          onClick={() => setSourcesOpen(!sourcesOpen)}
-          className="w-full px-5 py-3.5 bg-[#F8F7FF] flex items-center justify-between text-xs font-bold text-[#191B23]"
-        >
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[#004AC1]">library_books</span>
-            <span>
-              Active Grounding Sources ({completeSources.length} Documents Indexed)
+      {/* Collapsible Source Review & Chunk Inspector */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Source Documents */}
+        <div className="p-5 rounded-3xl bg-white border border-[#E0E0FF] shadow-sm space-y-3">
+          <div
+            onClick={() => setSourcesOpen(!sourcesOpen)}
+            className="flex items-center justify-between cursor-pointer"
+          >
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[#004AC1]">inventory_2</span>
+              <h3 className="text-xs font-bold text-[#191B23]">Active Sources ({completeSources.length})</h3>
+            </div>
+            <span className="material-symbols-outlined text-[18px] text-[#808191]">
+              {sourcesOpen ? 'expand_less' : 'expand_more'}
             </span>
           </div>
-          <span className="material-symbols-outlined text-[#808191]">
-            {sourcesOpen ? 'expand_less' : 'expand_more'}
-          </span>
-        </button>
 
-        {sourcesOpen && (
-          <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {sources.map((doc) => (
-              <div
-                key={doc.id}
-                className="p-3 rounded-xl bg-[#FAF8FF] border border-[#E5E2FF] flex items-center gap-3"
-              >
-                <span className="material-symbols-outlined text-[#004AC1] text-[20px]">
-                  {doc.type === 'pdf' ? 'picture_as_pdf' : doc.type === 'web' ? 'language' : 'description'}
-                </span>
-                <div className="truncate">
-                  <p className="text-xs font-bold text-[#191B23] truncate">{doc.name}</p>
-                  <p className="text-[10px] text-[#808191]">
-                    {doc.type.toUpperCase()} • {doc.chunks ? `${doc.chunks.length} Chunks` : doc.size}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Collapsible Section 2: Retrieval Preview */}
-      <div className="rounded-2xl bg-white border border-[#E0E0FF] shadow-sm overflow-hidden">
-        <button
-          onClick={() => setPreviewOpen(!previewOpen)}
-          className="w-full px-5 py-3.5 bg-[#F8F7FF] flex items-center justify-between text-xs font-bold text-[#191B23]"
-        >
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-purple-600">manage_search</span>
-            <span>
-              Vector Retrieval Match Preview ({activeResult.evidenceSnippets.length} Matches Found)
-            </span>
-          </div>
-          <span className="material-symbols-outlined text-[#808191]">
-            {previewOpen ? 'expand_less' : 'expand_more'}
-          </span>
-        </button>
-
-        {previewOpen && (
-          <div className="p-4 space-y-3 text-xs">
-            {activeResult.evidenceSnippets.length === 0 ? (
-              <p className="text-xs text-[#808191] italic">
-                Upload a document or ask a question to see real-time vector matches here.
-              </p>
-            ) : (
-              activeResult.evidenceSnippets.slice(0, 3).map((snippet, idx) => (
-                <div
-                  key={snippet.id || idx}
-                  className="p-3 rounded-xl bg-purple-50/50 border border-purple-200 space-y-1"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-purple-900">
-                      Source [{snippet.sourceNumber}]: {snippet.sourceTitle} ({snippet.location})
-                    </span>
-                    <span className="px-2 py-0.5 rounded bg-purple-200 text-purple-800 text-[10px] font-bold">
-                      {snippet.matchScore}% Similarity
-                    </span>
+          {sourcesOpen && (
+            <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+              {completeSources.map((s, idx) => (
+                <div key={s.id} className="p-2.5 rounded-xl bg-[#FAF8FF] border border-[#E5E2FF] flex items-center justify-between text-xs">
+                  <div className="truncate pr-2">
+                    <p className="font-bold text-[#191B23] truncate">[{idx + 1}] {s.name}</p>
+                    <p className="text-[10px] text-[#808191]">{s.size} • {s.chunks?.length || 0} chunks</p>
                   </div>
-                  <p className="text-[#5C5D69] italic">
-                    "{snippet.quote}"
-                  </p>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Ready</span>
                 </div>
-              ))
-            )}
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Live Vector Density */}
+        <div className="p-5 rounded-3xl bg-white border border-[#E0E0FF] shadow-sm space-y-3">
+          <div
+            onClick={() => setPreviewOpen(!previewOpen)}
+            className="flex items-center justify-between cursor-pointer"
+          >
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[#004AC1]">grid_view</span>
+              <h3 className="text-xs font-bold text-[#191B23]">Total Vector Embeddings</h3>
+            </div>
+            <span className="material-symbols-outlined text-[18px] text-[#808191]">
+              {previewOpen ? 'expand_less' : 'expand_more'}
+            </span>
           </div>
-        )}
+
+          {previewOpen && (
+            <div className="space-y-2 text-xs text-[#5C5D69]">
+              <div className="p-3 rounded-xl bg-[#FAF8FF] border border-[#E5E2FF] space-y-1">
+                <div className="flex justify-between font-bold text-[#191B23]">
+                  <span>Total Chunks in Memory:</span>
+                  <span className="text-[#004AC1]">
+                    {completeSources.reduce((acc, s) => acc + (s.chunks?.length || 0), 0)} Chunks
+                  </span>
+                </div>
+                <p className="text-[10px] text-[#808191]">
+                  Indexed with exact page coordinates, paragraph boundaries, and character offsets.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

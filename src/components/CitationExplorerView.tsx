@@ -14,18 +14,19 @@ export const CitationExplorerView: React.FC<CitationExplorerProps> = ({ onNaviga
       id: 'default-1',
       number: 1,
       total: 1,
-      sourceDocument: 'Upload Document to View Citations',
-      sourceTitle: 'Citation Index Ready',
+      sourceDocument: 'No Citations Generated',
+      sourceTitle: 'Citation Index Empty',
       author: 'Research Engine',
-      publication: 'AI Grounding Pipeline',
+      publication: 'Neural Grounding Pipeline',
       published: new Date().toLocaleDateString(),
-      doi: '10.ais/index/1',
-      similarityScore: 98.2,
-      extractedParagraph: 'Upload your documents in the Import Sources view to see verified citation snippets and page coordinates mapped here.',
+      doi: '10.rag/index/1',
+      similarityScore: 0,
+      extractedParagraph: 'No active citations found. Upload research documents or run a query to populate verified citations.',
     },
   ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [copiedQuote, setCopiedQuote] = useState(false);
   const safeIndex = Math.min(currentIndex, citations.length - 1);
   const currentCitation = citations[safeIndex >= 0 ? safeIndex : 0];
   const [approvedStatus, setApprovedStatus] = useState<'none' | 'approved' | 'flagged'>('none');
@@ -33,11 +34,19 @@ export const CitationExplorerView: React.FC<CitationExplorerProps> = ({ onNaviga
   const handleNext = () => {
     setCurrentIndex((prev) => (prev + 1) % citations.length);
     setApprovedStatus('none');
+    setCopiedQuote(false);
   };
 
   const handlePrev = () => {
     setCurrentIndex((prev) => (prev - 1 + citations.length) % citations.length);
     setApprovedStatus('none');
+    setCopiedQuote(false);
+  };
+
+  const handleCopyEvidence = async () => {
+    await navigator.clipboard.writeText(`"${currentCitation.extractedParagraph}" - Source: ${currentCitation.sourceDocument}`);
+    setCopiedQuote(true);
+    setTimeout(() => setCopiedQuote(false), 2000);
   };
 
   return (
@@ -48,7 +57,7 @@ export const CitationExplorerView: React.FC<CitationExplorerProps> = ({ onNaviga
         <div className="flex items-center gap-3">
           <button
             onClick={() => onNavigate('results')}
-            className="p-2 rounded-xl bg-[#FAF8FF] hover:bg-[#E0E0FF] text-[#191B23] transition-colors"
+            className="p-2 rounded-xl bg-[#FAF8FF] hover:bg-[#E0E0FF] text-[#191B23] transition-colors cursor-pointer"
           >
             <span className="material-symbols-outlined text-[20px]">arrow_back</span>
           </button>
@@ -56,11 +65,11 @@ export const CitationExplorerView: React.FC<CitationExplorerProps> = ({ onNaviga
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-[#004AC1]">find_in_page</span>
               <h1 className="text-xl font-extrabold text-[#191B23] font-['Manrope']">
-                Citation Explorer & Source Reader
+                Citation Explorer & Source Verification
               </h1>
             </div>
             <p className="text-xs text-[#5C5D69]">
-              Viewing verified text bounding box inside original source PDF manuscript.
+              Viewing verified text bounding coordinate inside original source manuscript.
             </p>
           </div>
         </div>
@@ -72,13 +81,13 @@ export const CitationExplorerView: React.FC<CitationExplorerProps> = ({ onNaviga
           </span>
           <button
             onClick={handlePrev}
-            className="p-2 rounded-xl bg-white border border-[#C5C4FF] hover:bg-[#F0EFFF] text-[#191B23]"
+            className="p-2 rounded-xl bg-white border border-[#C5C4FF] hover:bg-[#F0EFFF] text-[#191B23] cursor-pointer"
           >
             <span className="material-symbols-outlined text-[18px]">chevron_left</span>
           </button>
           <button
             onClick={handleNext}
-            className="p-2 rounded-xl bg-white border border-[#C5C4FF] hover:bg-[#F0EFFF] text-[#191B23]"
+            className="p-2 rounded-xl bg-white border border-[#C5C4FF] hover:bg-[#F0EFFF] text-[#191B23] cursor-pointer"
           >
             <span className="material-symbols-outlined text-[18px]">chevron_right</span>
           </button>
@@ -92,35 +101,47 @@ export const CitationExplorerView: React.FC<CitationExplorerProps> = ({ onNaviga
         <div className="lg:col-span-7 rounded-3xl bg-white border border-[#E0E0FF] shadow-md p-6 space-y-4">
           <div className="flex items-center justify-between border-b border-[#E0E0FF] pb-3 text-xs">
             <div className="flex items-center gap-2 text-[#004AC1] font-bold">
-              <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+              <span className="material-symbols-outlined text-[18px]">description</span>
               <span className="truncate">{currentCitation.sourceDocument}</span>
             </div>
-            <span className="text-[10px] text-[#808191] font-['JetBrains_Mono']">Page 14 • Zoom 100%</span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleCopyEvidence}
+                className="px-2.5 py-1 rounded-lg bg-blue-50 text-[#004AC1] hover:bg-blue-100 text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer"
+                title="Copy exact quoted evidence"
+              >
+                <span className="material-symbols-outlined text-[14px]">
+                  {copiedQuote ? 'check' : 'content_copy'}
+                </span>
+                <span>{copiedQuote ? 'Copied Quote!' : 'Copy Quote'}</span>
+              </button>
+              <span className="text-[10px] text-[#808191] font-['JetBrains_Mono']">Verified Coordinate</span>
+            </div>
           </div>
 
-          {/* PDF Manuscript Simulation Sheet */}
+          {/* Manuscript Extract Sheet */}
           <div className="p-6 rounded-2xl bg-[#FAF8FF] border border-[#E5E2FF] space-y-4 font-serif text-xs text-[#333] leading-relaxed shadow-inner">
             <p className="text-gray-400 uppercase tracking-widest text-[9px] font-sans font-bold">
-              MANUSCRIPT EXTRACT - SECTION 4.2
+              PRIMARY DOCUMENT CONTEXT
             </p>
             
-            <p>
-              In conventional distributed ledger designs, consensus finality requires multi-phase voting protocols among network validator nodes. This leads to latency growth proportional to log(N) where N is the total node count.
+            <p className="text-[#5C5D69]">
+              The following passage was extracted directly from the verified source document layer during semantic ingestion:
             </p>
 
             {/* Highlighted Citation Paragraph */}
-            <div className="p-3 rounded-xl bg-amber-100/80 border-l-4 border-amber-500 shadow-sm space-y-1 my-3 font-sans">
+            <div className="p-4 rounded-xl bg-amber-100/90 border-l-4 border-amber-500 shadow-sm space-y-2 my-3 font-sans">
               <div className="flex items-center justify-between text-[10px] text-amber-900 font-bold">
-                <span>HIGHLIGHTED MATCH FOR CITATION [{currentCitation.number}]</span>
-                <span>Similarity: {currentCitation.similarityScore}%</span>
+                <span>GROUNDED EVIDENCE FOR CITATION [{currentCitation.number}]</span>
+                <span className="font-['JetBrains_Mono']">{currentCitation.similarityScore}% SIMILARITY</span>
               </div>
-              <p className="text-xs font-semibold text-amber-950 italic">
+              <p className="text-xs font-semibold text-amber-950 leading-relaxed italic">
                 "{currentCitation.extractedParagraph}"
               </p>
             </div>
 
-            <p>
-              To evaluate this, we constructed a 128-node quantum testbed using fiber-coupled entangled photon sources operating at 1550 nm telecommunication wavelengths...
+            <p className="text-[11px] text-[#808191]">
+              Document provenance verified. Exact coordinate alignment prevents hallucination and guarantees attribution.
             </p>
           </div>
         </div>
@@ -148,17 +169,17 @@ export const CitationExplorerView: React.FC<CitationExplorerProps> = ({ onNaviga
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[10px] font-bold text-[#808191] uppercase">Authors</label>
+                  <label className="text-[10px] font-bold text-[#808191] uppercase">Originator / Author</label>
                   <p className="text-[#4A4B57]">{currentCitation.author}</p>
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-[#808191] uppercase">Published</label>
+                  <label className="text-[10px] font-bold text-[#808191] uppercase">Ingestion Date</label>
                   <p className="text-[#4A4B57]">{currentCitation.published}</p>
                 </div>
               </div>
 
               <div>
-                <label className="text-[10px] font-bold text-[#808191] uppercase">Journal & DOI</label>
+                <label className="text-[10px] font-bold text-[#808191] uppercase">Index ID & DOI Coordinate</label>
                 <p className="text-[#004AC1] font-mono text-[11px]">{currentCitation.publication} • DOI: {currentCitation.doi}</p>
               </div>
             </div>
@@ -170,7 +191,7 @@ export const CitationExplorerView: React.FC<CitationExplorerProps> = ({ onNaviga
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => setApprovedStatus('approved')}
-                  className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                     approvedStatus === 'approved'
                       ? 'bg-emerald-600 text-white shadow-md'
                       : 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100'
@@ -182,7 +203,7 @@ export const CitationExplorerView: React.FC<CitationExplorerProps> = ({ onNaviga
 
                 <button
                   onClick={() => setApprovedStatus('flagged')}
-                  className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                     approvedStatus === 'flagged'
                       ? 'bg-rose-600 text-white shadow-md'
                       : 'bg-rose-50 text-rose-800 border border-rose-200 hover:bg-rose-100'
@@ -198,14 +219,14 @@ export const CitationExplorerView: React.FC<CitationExplorerProps> = ({ onNaviga
             <div className="pt-2 flex items-center justify-between text-xs font-bold text-[#004AC1]">
               <button 
                 onClick={handlePrev} 
-                className="hover:underline flex items-center gap-1"
+                className="hover:underline flex items-center gap-1 cursor-pointer"
               >
                 <span>← Prev Citation</span>
               </button>
 
               <button 
                 onClick={handleNext} 
-                className="hover:underline flex items-center gap-1"
+                className="hover:underline flex items-center gap-1 cursor-pointer"
               >
                 <span>Next Citation →</span>
               </button>

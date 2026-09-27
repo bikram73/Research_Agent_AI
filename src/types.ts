@@ -23,10 +23,11 @@ export interface SourceFile {
   id: string;
   name: string;
   size: string;
-  type: 'pdf' | 'docx' | 'txt' | 'csv' | 'web';
+  type: 'pdf' | 'docx' | 'txt' | 'csv' | 'web' | 'md' | 'json' | 'html';
   status: 'complete' | 'processing' | 'waiting' | 'error';
   progress?: number;
   statusText: string;
+  errorMessage?: string;
   date?: string;
   url?: string;
   content?: string;
@@ -44,6 +45,8 @@ export interface ResearchResult {
   citations: CitationData[];
   totalChunksExamined: number;
   groundedSourcesCount: number;
+  isInsufficientContext?: boolean;
+  unsupportedQuestion?: boolean;
 }
 
 export interface EvidenceSnippet {

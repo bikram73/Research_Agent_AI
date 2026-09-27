@@ -43,6 +43,7 @@
 | <div align="center">**View the available REST API endpoints and usage examples.** 👉</div> | <div align="center"><a href="#api"><img src="https://img.shields.io/badge/🌐%20API%20Documentation-0EA5E9?style=for-the-badge" /></a></div> |
 | <div align="center">**Explore the complete system architecture, AI workflow, processing pipeline, data flow, deployment design, and technical decisions.** 👉</div> | <div align="center"><a href="./ARCHITECTURE.md"><img src="https://img.shields.io/badge/🏗️%20Architecture%20Document-DC2626?style=for-the-badge" /></a></div> |
 | <div align="center">**Review implementation details, AI pipeline, performance metrics, benchmarking, validation strategy, privacy, testing, and technical specifications.** 👉</div> | <div align="center"><a href="./TECHNICAL_REPORT.md"><img src="https://img.shields.io/badge/📊%20Technical%20Report-2563EB?style=for-the-badge" /></a></div> |
+| <div align="center">**Review the complete End-to-End Testing, QA Scorecard, and Validation Report.** 👉</div> | <div align="center"><a href="./QA_VALIDATION_REPORT.md"><img src="https://img.shields.io/badge/🧪%20QA%20Validation%20Report-10B981?style=for-the-badge" /></a></div> |
 | <div align="center">**Review processing speed, latency, and performance benchmarks.** 👉</div> | <div align="center"><a href="#performance"><img src="https://img.shields.io/badge/⚡%20Performance-F59E0B?style=for-the-badge" /></a></div> |
 | <div align="center">**Understand the current limitations and known failure cases of the AI extractor.** 👉</div> | <div align="center"><a href="#limitations"><img src="https://img.shields.io/badge/⚠️%20Known%20Limitations-EF4444?style=for-the-badge" /></a></div> |
 | <div align="center">**Learn how to deploy to Netlify, Vercel, or custom Docker environments.** 👉</div> | <div align="center"><a href="#deployment"><img src="https://img.shields.io/badge/☁️%20Deployment-00C7B7?style=for-the-badge" /></a></div> |
@@ -395,6 +396,12 @@ CMD ["nginx", "-g", "daemon off;"]
 
 <a id="testing"></a>
 ## 🧪 Testing & Quality Assurance
+
+### Run End-to-End Automated Test Suite
+```bash
+npm test
+```
+Executes the comprehensive automated RAG, citation verification, file validation, and anti-hallucination test suite (`scripts/test-e2e-rag.ts`). For full results, see [📊 QA Validation Report](./QA_VALIDATION_REPORT.md).
 
 ### Run TypeScript Type Validation
 ```bash

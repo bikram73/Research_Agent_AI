@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import { SourceFile, ResearchResult, DocumentChunk } from '../types';
 import { extractTextFromFile, chunkDocument, synthesizeResearch } from '../services/documentParser';
 
@@ -12,100 +12,187 @@ interface ResearchContextType {
   uploadFiles: (files: File[]) => Promise<void>;
   addWebSource: (url: string) => void;
   removeSource: (id: string) => void;
+  clearAllSources: () => void;
+  loadQATestDataset: () => void;
   runInvestigation: (query?: string) => Promise<ResearchResult>;
 }
 
-const DEFAULT_CHUNKS_PAPER: DocumentChunk[] = [
+// Controlled QA Dataset specified in PRD Section 6
+export const QA_TEST_DATASET: SourceFile[] = [
   {
-    id: 'default-1',
-    documentId: 'def-1',
-    documentName: 'Quantum_Consensus_Paper.pdf',
-    pageOrSection: 'Page 14',
-    text: 'Instantaneous qubit state entanglement eliminates traditional Byzantine agreement network latency cycles by 34.8%. Distributed ledger nodes can achieve synchronous state consensus across high-latency WAN networks without incurring O(N^2) message broadcast complexity.',
-    charStart: 0,
-    charEnd: 240,
-    score: 0.982,
-  },
-  {
-    id: 'default-2',
-    documentId: 'def-1',
-    documentName: 'Quantum_Consensus_Paper.pdf',
-    pageOrSection: 'Page 16',
-    text: 'Experimental results on 64-node validator clusters show zero packet collision when quantum state telemetry was coupled with standard Tendermint voting rounds. Cryptographic verification proof verified zero double-spend anomalies across 10,000 stress transactions.',
-    charStart: 241,
-    charEnd: 510,
-    score: 0.954,
-  },
-  {
-    id: 'default-3',
-    documentId: 'def-2',
-    documentName: 'Market_Infrastructure_Q4.pdf',
-    pageOrSection: 'Page 8',
-    text: 'Energy consumption of quantum consensus nodes decreased by 2.4x compared to legacy Proof-of-Stake validator clusters. Hardware operational expenditure dropped from $0.042 per transaction to under $0.0018 per quantum-verified ledger block.',
-    charStart: 0,
-    charEnd: 245,
-    score: 0.941,
-  },
-  {
-    id: 'default-4',
-    documentId: 'def-3',
-    documentName: 'Cryptographic_Foundations.docx',
-    pageOrSection: 'Page 2',
-    text: 'The quantum no-cloning theorem ensures absolute protection against double-spend attacks without requiring computational proof-of-work. Because unknown quantum states cannot be duplicated, malicious actors cannot fork state branches without collapsing the entanglement field.',
-    charStart: 0,
-    charEnd: 275,
-    score: 0.915,
-  },
-];
-
-const INITIAL_SOURCES: SourceFile[] = [
-  {
-    id: 'def-1',
-    name: 'Quantum_Consensus_Paper.pdf',
+    id: 'qa-doc-a',
+    name: 'research_basic.pdf',
     size: '4.2 MB',
     type: 'pdf',
     status: 'complete',
-    statusText: '100% Embedded & Grounded',
-    date: 'Initial Dataset',
-    content: 'Full text extracted for Quantum Consensus Paper...',
-    chunks: [DEFAULT_CHUNKS_PAPER[0], DEFAULT_CHUNKS_PAPER[1]],
+    statusText: '100% Embedded & Grounded (5 Pages, 5 Chunks)',
+    date: 'QA Dataset A',
+    content: 'Page 1: Project name: Research Agent AI. Page 2: The system uses semantic retrieval. Page 3: The system generates citations. Page 4: The application supports PDF documents. Page 5: The application processes documents locally before AI synthesis.',
+    chunks: [
+      {
+        id: 'qa-a-1',
+        documentId: 'qa-doc-a',
+        documentName: 'research_basic.pdf',
+        pageOrSection: 'Page 1',
+        text: 'Project name: Research Agent AI. An enterprise research intelligence workstation designed for autonomous document ingestion.',
+        charStart: 0,
+        charEnd: 125,
+        score: 0.95,
+      },
+      {
+        id: 'qa-a-2',
+        documentId: 'qa-doc-a',
+        documentName: 'research_basic.pdf',
+        pageOrSection: 'Page 2',
+        text: 'The system uses semantic retrieval and cosine token overlap to match query intent with high accuracy.',
+        charStart: 126,
+        charEnd: 232,
+        score: 0.96,
+      },
+      {
+        id: 'qa-a-3',
+        documentId: 'qa-doc-a',
+        documentName: 'research_basic.pdf',
+        pageOrSection: 'Page 3',
+        text: 'The system generates citations linking every synthesized finding to primary originating page coordinates.',
+        charStart: 233,
+        charEnd: 341,
+        score: 0.94,
+      },
+      {
+        id: 'qa-a-4',
+        documentId: 'qa-doc-a',
+        documentName: 'research_basic.pdf',
+        pageOrSection: 'Page 4',
+        text: 'The application supports PDF documents, Word DOCX files, plain text, Markdown, CSV tables, and JSON data formats.',
+        charStart: 342,
+        charEnd: 457,
+        score: 0.93,
+      },
+      {
+        id: 'qa-a-5',
+        documentId: 'qa-doc-a',
+        documentName: 'research_basic.pdf',
+        pageOrSection: 'Page 5',
+        text: 'The application processes documents locally before AI synthesis, guaranteeing complete privacy and zero data leakage.',
+        charStart: 458,
+        charEnd: 574,
+        score: 0.92,
+      },
+    ],
   },
   {
-    id: 'def-2',
-    name: 'Market_Infrastructure_Q4.pdf',
-    size: '1.8 MB',
-    type: 'pdf',
-    status: 'complete',
-    statusText: '100% Embedded & Grounded',
-    date: 'Initial Dataset',
-    content: 'Full text extracted for Market Infrastructure Q4...',
-    chunks: [DEFAULT_CHUNKS_PAPER[2]],
-  },
-  {
-    id: 'def-3',
-    name: 'Cryptographic_Foundations.docx',
-    size: '850 KB',
+    id: 'qa-doc-b',
+    name: 'research_docx.docx',
+    size: '1.2 MB',
     type: 'docx',
     status: 'complete',
+    statusText: '100% Embedded & Grounded (3 Paragraphs)',
+    date: 'QA Dataset B',
+    content: 'Research Agent AI processes unstructured papers into high-dimensional semantic chunks with rigorous citation verification.',
+    chunks: [
+      {
+        id: 'qa-b-1',
+        documentId: 'qa-doc-b',
+        documentName: 'research_docx.docx',
+        pageOrSection: 'Page 1',
+        text: 'Document parsing decomposes unstructured papers into high-dimensional semantic chunks with character offset boundaries.',
+        charStart: 0,
+        charEnd: 122,
+        score: 0.91,
+      },
+      {
+        id: 'qa-b-2',
+        documentId: 'qa-doc-b',
+        documentName: 'research_docx.docx',
+        pageOrSection: 'Page 2',
+        text: 'Rigorous citation verification traces evidence back to primary originating documents, highlighting exact match quotes.',
+        charStart: 123,
+        charEnd: 245,
+        score: 0.93,
+      },
+    ],
+  },
+  {
+    id: 'qa-doc-c',
+    name: 'research_notes.txt',
+    size: '340 KB',
+    type: 'txt',
+    status: 'complete',
     statusText: '100% Embedded & Grounded',
-    date: 'Initial Dataset',
-    content: 'Full text extracted for Cryptographic Foundations...',
-    chunks: [DEFAULT_CHUNKS_PAPER[3]],
+    date: 'QA Dataset C',
+    content: 'Research Agent AI uses document chunks. Autonomous synthesis is used for research synthesis. Citations reference source evidence.',
+    chunks: [
+      {
+        id: 'qa-c-1',
+        documentId: 'qa-doc-c',
+        documentName: 'research_notes.txt',
+        pageOrSection: 'Page 1',
+        text: 'Research Agent AI uses document chunks with character offsets. Citations reference source evidence directly to prevent hallucination.',
+        charStart: 0,
+        charEnd: 135,
+        score: 0.90,
+      },
+    ],
+  },
+  {
+    id: 'qa-doc-d',
+    name: 'research.md',
+    size: '180 KB',
+    type: 'md',
+    status: 'complete',
+    statusText: '100% Embedded & Grounded',
+    date: 'QA Dataset D',
+    content: '# Research Agent\n## Retrieval\nThe system retrieves relevant document chunks.\n## Limitations\nScanned PDFs require OCR.',
+    chunks: [
+      {
+        id: 'qa-d-1',
+        documentId: 'qa-doc-d',
+        documentName: 'research.md',
+        pageOrSection: 'Section 1',
+        text: 'The system retrieves relevant document chunks based on semantic similarity. Scanned PDFs with pure images may require external OCR.',
+        charStart: 0,
+        charEnd: 132,
+        score: 0.89,
+      },
+    ],
+  },
+  {
+    id: 'qa-doc-f',
+    name: 'negative_dataset.txt',
+    size: '120 KB',
+    type: 'txt',
+    status: 'complete',
+    statusText: '100% Embedded & Grounded (Irrelevant Data)',
+    date: 'QA Dataset F (Negative)',
+    content: 'This document discusses cooking recipes, weather forecasts, culinary arts, and public transportation schedules.',
+    chunks: [
+      {
+        id: 'qa-f-1',
+        documentId: 'qa-doc-f',
+        documentName: 'negative_dataset.txt',
+        pageOrSection: 'Page 1',
+        text: 'This document discusses culinary recipes, atmospheric weather patterns, and municipal bus routes in rural districts.',
+        charStart: 0,
+        charEnd: 119,
+        score: 0.1,
+      },
+    ],
   },
 ];
 
-const INITIAL_QUERY = 'How does Quantum Entanglement impact Distributed Ledger Consensus scalability under heavy load?';
+const INITIAL_QUERY = 'What technologies, retrieval methods, and citation capabilities are used by Research Agent AI?';
 
 const ResearchContext = createContext<ResearchContextType | undefined>(undefined);
 
 export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [sources, setSources] = useState<SourceFile[]>(INITIAL_SOURCES);
+  const [sources, setSources] = useState<SourceFile[]>(QA_TEST_DATASET);
   const [currentQuery, setCurrentQuery] = useState<string>(INITIAL_QUERY);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [uploadStatusMessage, setUploadStatusMessage] = useState<string | null>(null);
 
   const [activeResult, setActiveResult] = useState<ResearchResult>(() =>
-    synthesizeResearch(INITIAL_QUERY, INITIAL_SOURCES)
+    synthesizeResearch(INITIAL_QUERY, QA_TEST_DATASET)
   );
 
   const uploadFiles = async (files: File[]) => {
@@ -116,13 +203,16 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      const fileId = `${Date.now()}-${i}-${Math.random().toString(36).substr(2, 5)}`;
+      const fileId = `${Date.now()}-${i}-${Math.random().toString(36).substring(2, 7)}`;
       const ext = file.name.split('.').pop()?.toLowerCase() || '';
 
-      let fileType: 'pdf' | 'docx' | 'txt' | 'csv' | 'web' = 'txt';
+      let fileType: SourceFile['type'] = 'txt';
       if (ext === 'pdf') fileType = 'pdf';
       else if (['doc', 'docx'].includes(ext)) fileType = 'docx';
       else if (['csv', 'xls', 'xlsx'].includes(ext)) fileType = 'csv';
+      else if (ext === 'md') fileType = 'md';
+      else if (ext === 'json') fileType = 'json';
+      else if (['html', 'htm'].includes(ext)) fileType = 'html';
 
       const formattedSize =
         file.size > 1024 * 1024
@@ -144,7 +234,7 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setSources((prev) => [pendingSource, ...prev]);
 
       try {
-        // 2. Extract real text and pages
+        // 2. Extract real text and pages (validates size, empty, corrupted, unsupported)
         const { text, pages } = await extractTextFromFile(file);
 
         // Update progress to 60%
@@ -175,13 +265,13 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
         setSources((prev) => {
           const updated = prev.map((s) => (s.id === fileId ? completeSource : s));
-          // Re-synthesize automatically so new document insights are instantly accessible
           const newSynth = synthesizeResearch(currentQuery, updated);
           setActiveResult(newSynth);
           return updated;
         });
-      } catch (err) {
-        console.error('Failed to parse file:', file.name, err);
+      } catch (err: any) {
+        const errorMsg = err?.message || 'Failed to parse document layer';
+        console.error('File parsing error:', file.name, errorMsg);
         setSources((prev) =>
           prev.map((s) =>
             s.id === fileId
@@ -189,17 +279,18 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                   ...s,
                   status: 'error',
                   progress: 0,
-                  statusText: 'Failed to extract text layer',
+                  statusText: errorMsg,
+                  errorMessage: errorMsg,
                 }
               : s
           )
         );
+        setUploadStatusMessage(`⚠️ Error with "${file.name}": ${errorMsg}`);
       }
     }
 
     setIsProcessing(false);
-    setUploadStatusMessage(`Successfully ingested ${files.length} document${files.length > 1 ? 's' : ''}!`);
-    setTimeout(() => setUploadStatusMessage(null), 4000);
+    setTimeout(() => setUploadStatusMessage(null), 5000);
   };
 
   const addWebSource = (url: string) => {
@@ -250,19 +341,40 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const removeSource = (id: string) => {
     setSources((prev) => {
       const updated = prev.filter((s) => s.id !== id);
+      // Re-synthesize immediately without the removed source (eliminates stale citations)
       const newSynth = synthesizeResearch(currentQuery, updated);
       setActiveResult(newSynth);
       return updated;
     });
   };
 
+  const clearAllSources = () => {
+    setSources([]);
+    const emptySynth = synthesizeResearch(currentQuery, []);
+    setActiveResult(emptySynth);
+  };
+
+  const loadQATestDataset = () => {
+    setSources(QA_TEST_DATASET);
+    const newSynth = synthesizeResearch(currentQuery, QA_TEST_DATASET);
+    setActiveResult(newSynth);
+    setUploadStatusMessage('✅ Loaded controlled QA Test Dataset (Documents A, B, C, D, and F)!');
+    setTimeout(() => setUploadStatusMessage(null), 4000);
+  };
+
   const runInvestigation = async (query?: string): Promise<ResearchResult> => {
     const q = query !== undefined ? query : currentQuery;
+    
+    // Validate empty query (PRD Section 26)
+    if (!q || !q.trim()) {
+      throw new Error('Please enter a research question or topic before initiating investigation.');
+    }
+
     setIsProcessing(true);
     setCurrentQuery(q);
 
     // Artificial short neural pipeline step delay for responsive feel
-    await new Promise((resolve) => setTimeout(resolve, 600));
+    await new Promise((resolve) => setTimeout(resolve, 400));
 
     const result = synthesizeResearch(q, sources);
     setActiveResult(result);
@@ -282,6 +394,8 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         uploadFiles,
         addWebSource,
         removeSource,
+        clearAllSources,
+        loadQATestDataset,
         runInvestigation,
       }}
     >
