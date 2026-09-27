@@ -7,16 +7,16 @@ interface HomeViewProps {
 }
 
 export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
-  const { sources, currentQuery, setCurrentQuery, runInvestigation, isProcessing } = useResearch();
+  const { sources, currentQuery, setCurrentQuery, runInvestigation, isProcessing, loadQATestDataset } = useResearch();
   const [homeQuery, setHomeQuery] = useState(currentQuery || '');
 
   const totalChunks = sources.reduce((acc, s) => acc + (s.chunks?.length || 0), 0);
 
   const samplePrompts = [
-    'What does Research Agent AI do?',
-    'What file formats does the system support?',
-    'How are citations verified against source documents?',
-    'What technologies and processing methods are used across the documents?',
+    { text: 'What does Research Agent AI do?', type: 'Direct' },
+    { text: 'What file formats does the system support?', type: 'Formats' },
+    { text: 'How are citations verified against source documents?', type: 'Citations' },
+    { text: "What is the CEO's corporate revenue?", type: 'Refusal Test' },
   ];
 
   const handleExecuteSearch = async (queryText?: string) => {
@@ -34,8 +34,53 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
     }
   };
 
+  const workflowSteps = [
+    {
+      step: '1',
+      title: 'Import Sources',
+      route: 'upload' as NavView,
+      desc: 'Upload PDF, DOCX, TXT, MD, CSV, JSON, or HTML. Parsed client-side with zero cloud data leaks.',
+      icon: 'upload_file',
+      badge: 'Step 1',
+    },
+    {
+      step: '2',
+      title: 'Pipeline Architecture',
+      route: 'pipeline' as NavView,
+      desc: 'Tokenization, character offset chunking, and semantic vector density indexing.',
+      icon: 'hub',
+      badge: 'Step 2',
+    },
+    {
+      step: '3',
+      title: 'Search Workspace',
+      route: 'investigate' as NavView,
+      desc: 'Natural language query matching, voice input, and multi-document retrieval ranking.',
+      icon: 'travel_explore',
+      badge: 'Step 3',
+    },
+    {
+      step: '4',
+      title: 'Verified Results',
+      route: 'results' as NavView,
+      desc: 'Executive summary, core findings, paragraph citations, and multi-format exports.',
+      icon: 'auto_stories',
+      badge: 'Step 4',
+    },
+  ];
+
+  const supportedFormats = [
+    { ext: 'PDF', name: 'Adobe PDF (.pdf)', icon: 'picture_as_pdf', color: 'text-red-600 bg-red-50' },
+    { ext: 'DOCX', name: 'Word (.docx)', icon: 'article', color: 'text-blue-600 bg-blue-50' },
+    { ext: 'TXT', name: 'Text (.txt)', icon: 'description', color: 'text-gray-700 bg-gray-100' },
+    { ext: 'MD', name: 'Markdown (.md)', icon: 'markdown', color: 'text-indigo-600 bg-indigo-50' },
+    { ext: 'CSV', name: 'Spreadsheet (.csv)', icon: 'table_chart', color: 'text-emerald-600 bg-emerald-50' },
+    { ext: 'JSON', name: 'JSON (.json)', icon: 'code', color: 'text-amber-600 bg-amber-50' },
+    { ext: 'HTML', name: 'Web HTML (.html)', icon: 'html', color: 'text-orange-600 bg-orange-50' },
+  ];
+
   return (
-    <div className="space-y-16 pb-20">
+    <div className="space-y-16 pb-20 font-['Work_Sans']">
       
       {/* Hero Section */}
       <section className="relative pt-6 lg:pt-10 pb-12 overflow-hidden rounded-3xl bg-gradient-to-b from-[#FAF8FF] via-white to-[#F0EFFF] border border-[#E0E0FF] shadow-sm p-6 lg:p-12">
@@ -51,7 +96,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#004AC1]/10 border border-[#004AC1]/20">
               <span className="material-symbols-outlined text-[#004AC1] text-[18px]">verified</span>
               <span className="font-['JetBrains_Mono'] text-xs font-bold text-[#004AC1] uppercase tracking-wider">
-                Autonomous Grounded Synthesis
+                Autonomous Grounded Synthesis Engine
               </span>
             </div>
 
@@ -62,8 +107,8 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
               </span> Verified Citations
             </h1>
 
-            <p className="font-['Work_Sans'] text-sm sm:text-base text-[#5C5D69] leading-relaxed max-w-xl">
-              Synthesize complex datasets and academic papers with a digital research assistant that maps every claim back to its original source. Zero hallucinations, verified paragraph citations.
+            <p className="text-sm sm:text-base text-[#5C5D69] leading-relaxed max-w-xl">
+              Synthesize complex datasets, reports, and academic papers with a digital research assistant that maps every single claim back to original source offsets. Zero hallucinations, verified paragraph citations.
             </p>
 
             {/* Direct Interactive Search Bar in Hero */}
@@ -82,7 +127,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
                       }
                     }}
                     placeholder="Ask any research question about your documents..."
-                    className="w-full text-xs sm:text-sm bg-transparent text-[#191B23] placeholder:text-[#808191] focus:outline-none py-1.5 font-['Work_Sans']"
+                    className="w-full text-xs sm:text-sm bg-transparent text-[#191B23] placeholder:text-[#808191] focus:outline-none py-1.5"
                   />
                 </div>
                 <button
@@ -102,74 +147,99 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
                   <span className="material-symbols-outlined text-[14px]">lightbulb</span>
                   <span>Try:</span>
                 </span>
-                {samplePrompts.slice(0, 3).map((prompt, idx) => (
+                {samplePrompts.map((prompt, idx) => (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => {
-                      setHomeQuery(prompt);
-                      handleExecuteSearch(prompt);
+                      setHomeQuery(prompt.text);
+                      handleExecuteSearch(prompt.text);
                     }}
-                    className="px-2.5 py-1 rounded-lg bg-[#FAF8FF] hover:bg-[#EEECFF] text-[#004AC1] hover:text-[#003896] border border-[#E5E2FF] transition-all text-[11px] truncate max-w-[240px] cursor-pointer"
+                    className="px-2.5 py-1 rounded-lg bg-[#FAF8FF] hover:bg-[#EEECFF] text-[#004AC1] hover:text-[#003896] border border-[#E5E2FF] transition-all text-[11px] truncate max-w-[260px] cursor-pointer flex items-center gap-1"
                   >
-                    {prompt}
+                    <span>{prompt.text}</span>
+                    {prompt.type === 'Refusal Test' && (
+                      <span className="text-[9px] px-1 py-0.2 rounded bg-amber-100 text-amber-800 font-bold">
+                        Guardrail
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>
             </div>
 
             {/* CTAs */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-1">
+            <div className="flex flex-wrap items-center gap-3 pt-1">
               <button
                 onClick={() => onNavigate('upload')}
-                className="font-['JetBrains_Mono'] text-xs sm:text-sm font-bold px-6 py-3.5 bg-[#004AC1] hover:bg-[#003896] text-white rounded-2xl shadow-lg shadow-blue-600/25 hover:-translate-y-0.5 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="font-['JetBrains_Mono'] text-xs sm:text-sm font-bold px-5 py-3 bg-[#004AC1] hover:bg-[#003896] text-white rounded-2xl shadow-lg shadow-blue-600/25 hover:-translate-y-0.5 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[18px]">upload_file</span>
-                <span>Import Knowledge Base</span>
+                <span>1. Import Sources</span>
+              </button>
+
+              <button
+                onClick={() => onNavigate('pipeline')}
+                className="font-['JetBrains_Mono'] text-xs sm:text-sm font-bold px-5 py-3 bg-white hover:bg-[#FAF8FF] text-[#004AC1] border-2 border-[#004AC1]/20 rounded-2xl shadow-xs hover:border-[#004AC1]/40 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[18px]">hub</span>
+                <span>2. Pipeline</span>
               </button>
 
               <button
                 onClick={() => onNavigate('investigate')}
-                className="font-['JetBrains_Mono'] text-xs sm:text-sm font-bold px-6 py-3.5 bg-white hover:bg-[#FAF8FF] text-[#004AC1] border-2 border-[#004AC1]/20 rounded-2xl shadow-sm hover:border-[#004AC1]/40 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="font-['JetBrains_Mono'] text-xs sm:text-sm font-bold px-5 py-3 bg-white hover:bg-[#FAF8FF] text-[#004AC1] border-2 border-[#004AC1]/20 rounded-2xl shadow-xs hover:border-[#004AC1]/40 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span className="material-symbols-outlined text-[18px]">psychology</span>
-                <span>Open Workspace</span>
+                <span className="material-symbols-outlined text-[18px]">travel_explore</span>
+                <span>3. Workspace</span>
               </button>
 
               <button
                 onClick={() => onNavigate('results')}
-                className="font-['JetBrains_Mono'] text-xs sm:text-sm font-bold px-6 py-3.5 bg-[#F0EFFF] hover:bg-[#E5E2FF] text-[#004AC1] rounded-2xl transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="font-['JetBrains_Mono'] text-xs sm:text-sm font-bold px-5 py-3 bg-[#F0EFFF] hover:bg-[#E5E2FF] text-[#004AC1] rounded-2xl transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[18px]">auto_stories</span>
-                <span>View Results</span>
+                <span>4. Results</span>
               </button>
             </div>
 
-            {/* Social Trust Avatars */}
-            <div className="pt-4 border-t border-[#E0E0FF] flex items-center gap-4">
-              <div className="flex -space-x-3">
-                <img 
-                  className="w-9 h-9 rounded-full border-2 border-white object-cover shadow-sm" 
-                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80" 
-                  alt="Researcher" 
-                  referrerPolicy="no-referrer"
-                />
-                <img 
-                  className="w-9 h-9 rounded-full border-2 border-white object-cover shadow-sm" 
-                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120&q=80" 
-                  alt="Analyst" 
-                  referrerPolicy="no-referrer"
-                />
-                <img 
-                  className="w-9 h-9 rounded-full border-2 border-white object-cover shadow-sm" 
-                  src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&h=120&q=80" 
-                  alt="Academic" 
-                  referrerPolicy="no-referrer"
-                />
+            {/* Social Trust */}
+            <div className="pt-4 border-t border-[#E0E0FF] flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex -space-x-3">
+                  <img 
+                    className="w-8 h-8 rounded-full border-2 border-white object-cover shadow-sm" 
+                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80" 
+                    alt="Researcher" 
+                    referrerPolicy="no-referrer"
+                  />
+                  <img 
+                    className="w-8 h-8 rounded-full border-2 border-white object-cover shadow-sm" 
+                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120&q=80" 
+                    alt="Analyst" 
+                    referrerPolicy="no-referrer"
+                  />
+                  <img 
+                    className="w-8 h-8 rounded-full border-2 border-white object-cover shadow-sm" 
+                    src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&h=120&q=80" 
+                    alt="Academic" 
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+                <p className="text-xs text-[#5C5D69]">
+                  <span className="font-bold text-[#191B23]">100% Client-Side Privacy</span> • Zero telemetry or cloud retention
+                </p>
               </div>
-              <p className="text-xs text-[#5C5D69] font-['Work_Sans']">
-                <span className="font-bold text-[#191B23]">5,000+</span> Researchers, Data Scientists & Engineers rely on Research Agent AI
-              </p>
+
+              {sources.length === 0 && (
+                <button
+                  onClick={loadQATestDataset}
+                  className="text-xs text-[#004AC1] hover:underline font-bold flex items-center gap-1 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[16px]">dataset</span>
+                  <span>Load Benchmark Dataset</span>
+                </button>
+              )}
             </div>
 
           </div>
@@ -192,7 +262,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
                 <div>
                   <p className="text-[11px] font-bold text-[#191B23]">Lineage Verified</p>
                   <p className="text-[10px] text-[#004AC1] font-['JetBrains_Mono']">
-                    {sources.length} Indexed Sources
+                    {sources.length} Active Sources
                   </p>
                 </div>
               </div>
@@ -202,7 +272,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
                 <div>
                   <p className="text-xs font-extrabold text-[#191B23]">Zero Hallucinations</p>
                   <p className="text-[10px] text-emerald-600 font-bold font-['JetBrains_Mono']">
-                    {totalChunks} Semantic Chunks Active
+                    {totalChunks} Semantic Chunks
                   </p>
                 </div>
               </div>
@@ -210,6 +280,53 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
             </div>
           </div>
 
+        </div>
+      </section>
+
+      {/* 4-Step Research Lifecycle Stepper */}
+      <section className="space-y-6">
+        <div className="text-center max-w-2xl mx-auto space-y-2">
+          <span className="text-xs font-bold text-[#004AC1] uppercase tracking-wider font-['JetBrains_Mono']">
+            End-To-End Methodology
+          </span>
+          <h2 className="text-2xl lg:text-3xl font-extrabold text-[#191B23] font-['Manrope']">
+            The 4-Step Grounded Research Workflow
+          </h2>
+          <p className="text-xs sm:text-sm text-[#5C5D69]">
+            From raw unstructured documents to peer-verifiable syntheses with precise sentence-level paragraph citations.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {workflowSteps.map((ws, i) => (
+            <div
+              key={i}
+              onClick={() => onNavigate(ws.route)}
+              className="p-5 rounded-3xl bg-white border border-[#E0E0FF] shadow-sm hover:border-[#004AC1]/50 hover:shadow-md transition-all cursor-pointer space-y-3 flex flex-col justify-between group"
+            >
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="w-10 h-10 rounded-2xl bg-blue-50 text-[#004AC1] group-hover:bg-[#004AC1] group-hover:text-white transition-colors flex items-center justify-center font-bold">
+                    <span className="material-symbols-outlined text-[22px]">{ws.icon}</span>
+                  </div>
+                  <span className="text-[10px] font-bold font-['JetBrains_Mono'] px-2.5 py-0.5 rounded-full bg-blue-50 text-[#004AC1]">
+                    {ws.badge}
+                  </span>
+                </div>
+                <h3 className="text-base font-extrabold text-[#191B23] group-hover:text-[#004AC1] transition-colors font-['Manrope']">
+                  {ws.title}
+                </h3>
+                <p className="text-xs text-[#5C5D69] leading-relaxed">
+                  {ws.desc}
+                </p>
+              </div>
+
+              <div className="pt-2 flex items-center gap-1 text-xs font-bold text-[#004AC1] group-hover:translate-x-1 transition-transform">
+                <span>Explore Stage</span>
+                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -227,10 +344,48 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
             </div>
             <div>
               <p className="text-xl sm:text-2xl font-extrabold text-[#191B23] font-['Manrope']">{stat.val}</p>
-              <p className="text-xs text-[#5C5D69] font-medium font-['Work_Sans']">{stat.label}</p>
+              <p className="text-xs text-[#5C5D69] font-medium">{stat.label}</p>
             </div>
           </div>
         ))}
+      </section>
+
+      {/* Supported Multi-Modal Formats */}
+      <section className="p-8 rounded-3xl bg-white border border-[#E0E0FF] shadow-sm space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h3 className="text-xl font-extrabold text-[#191B23] font-['Manrope']">
+              Universal Document Ingestion Support
+            </h3>
+            <p className="text-xs text-[#5C5D69] mt-1">
+              Pure client-side parsing handles enterprise document types without external server uploads.
+            </p>
+          </div>
+          <button
+            onClick={() => onNavigate('upload')}
+            className="px-4 py-2 rounded-xl bg-[#004AC1] hover:bg-[#003896] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 self-start md:self-auto cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[16px]">upload_file</span>
+            <span>Upload Your Files</span>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
+          {supportedFormats.map((fmt, idx) => (
+            <div
+              key={idx}
+              className="p-3.5 rounded-2xl bg-[#FAF8FF] border border-[#E5E2FF] flex flex-col items-center text-center gap-2 hover:border-[#004AC1]/40 transition-all"
+            >
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${fmt.color}`}>
+                <span className="material-symbols-outlined text-[22px]">{fmt.icon}</span>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-[#191B23]">{fmt.ext}</p>
+                <p className="text-[10px] text-[#808191]">{fmt.name}</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* Bento Grid Features */}
@@ -239,11 +394,11 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
           <span className="text-xs font-bold text-[#004AC1] uppercase tracking-wider font-['JetBrains_Mono']">
             Engineered For Precision
           </span>
-          <h2 className="text-2xl lg:text-4xl font-extrabold text-[#191B23] font-['Manrope']">
-            Designed for Rigorous Minds
+          <h2 className="text-2xl lg:text-3xl font-extrabold text-[#191B23] font-['Manrope']">
+            Designed for Academic & Enterprise Rigor
           </h2>
           <p className="text-xs sm:text-sm text-[#5C5D69]">
-            Traditional AI models hallucinate. Our multi-agent neural pipeline verifies every claim against your uploaded sources and peer-reviewed journals.
+            Traditional AI models hallucinate. Our deterministic multi-agent pipeline verifies every claim against your uploaded sources.
           </p>
         </div>
 
@@ -260,7 +415,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
             <h3 className="text-xl font-bold text-[#191B23] group-hover:text-[#004AC1] transition-colors font-['Manrope']">
               Real-Time Lineage Tracking
             </h3>
-            <p className="text-xs text-[#5C5D69] leading-relaxed max-w-md font-['Work_Sans']">
+            <p className="text-xs text-[#5C5D69] leading-relaxed max-w-md">
               Visualize exactly where every sentence in your generated synthesis comes from. Our dynamic mapping system creates an interactive source tree for every document.
             </p>
             <div className="pt-2 flex items-center text-xs font-bold text-[#004AC1] gap-1 group-hover:translate-x-1 transition-transform font-['JetBrains_Mono']">
@@ -293,11 +448,11 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
             <h3 className="text-xl font-bold text-[#191B23] group-hover:text-[#004AC1] transition-colors font-['Manrope']">
               Anti-Hallucination Guardrails
             </h3>
-            <p className="text-xs text-[#5C5D69] leading-relaxed font-['Work_Sans']">
-              Our proprietary Truth-Checker layer cross-references synthesized outputs with uploaded documents before generation completes.
+            <p className="text-xs text-[#5C5D69] leading-relaxed">
+              Our Truth-Checker layer cross-references synthesized claims with character offsets in your uploaded files before final presentation.
             </p>
             <div className="pt-2 flex items-center justify-between text-[11px] font-bold text-emerald-600 font-['JetBrains_Mono']">
-              <span>Verified by Grounding Guardian</span>
+              <span>Verified Grounding</span>
               <span className="material-symbols-outlined text-[16px]">check_circle</span>
             </div>
           </div>
@@ -313,8 +468,8 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
             <h3 className="text-xl font-bold text-[#191B23] group-hover:text-[#004AC1] transition-colors font-['Manrope']">
               Multi-Modal Ingestion
             </h3>
-            <p className="text-xs text-[#5C5D69] leading-relaxed font-['Work_Sans']">
-              Feed the AI anything—PDF papers, Word manuscripts, CSV datasets, Markdown, JSON, or web URLs. We normalize disparate data into a single vector knowledge base.
+            <p className="text-xs text-[#5C5D69] leading-relaxed">
+              Feed the AI anything—PDF papers, Word manuscripts, CSV tables, Markdown notes, JSON files, or HTML web excerpts.
             </p>
             <div className="pt-2 flex items-center text-xs font-bold text-[#004AC1] gap-1 group-hover:translate-x-1 transition-transform font-['JetBrains_Mono']">
               <span>Upload Knowledge Base</span>
@@ -322,32 +477,26 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
             </div>
           </div>
 
-          {/* Bento Card 4: Collaborative Lab Spaces */}
+          {/* Bento Card 4: Local Persistence & History */}
           <div 
-            onClick={() => onNavigate('investigate')}
+            onClick={() => onNavigate('library')}
             className="md:col-span-8 group cursor-pointer p-8 rounded-3xl bg-gradient-to-r from-[#EEECFF] to-[#FAF8FF] border border-[#D5D1FF] shadow-sm hover:shadow-md hover:border-[#004AC1]/40 transition-all flex flex-col sm:flex-row items-center justify-between gap-6"
           >
             <div className="space-y-3">
-              <div className="inline-block px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-[10px] font-bold font-['JetBrains_Mono']">
-                ENTERPRISE ENGINE
+              <div className="inline-block px-3 py-1 rounded-full bg-blue-100 text-[#004AC1] text-[10px] font-bold font-['JetBrains_Mono']">
+                LOCAL ARCHIVE
               </div>
               <h3 className="text-xl font-bold text-[#191B23] font-['Manrope']">
-                Collaborative Lab Spaces
+                Browser History & Evidence Library
               </h3>
-              <p className="text-xs text-[#5C5D69] leading-relaxed max-w-md font-['Work_Sans']">
-                Bring your entire research team into a synchronized AI environment. Share collections, annotations, and grounded draft revisions in real time.
+              <p className="text-xs text-[#5C5D69] leading-relaxed max-w-md">
+                Every research synthesis and citation graph is automatically preserved in your browser's local storage for instant re-opening and offline review.
               </p>
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-              <div className="w-10 h-10 rounded-full bg-blue-500 text-white font-bold flex items-center justify-center text-xs shadow-md">
-                SR
-              </div>
-              <div className="w-10 h-10 rounded-full bg-purple-500 text-white font-bold flex items-center justify-center text-xs shadow-md">
-                MK
-              </div>
-              <div className="w-10 h-10 rounded-full bg-emerald-500 text-white font-bold flex items-center justify-center text-xs shadow-md">
-                AT
+              <div className="w-11 h-11 rounded-2xl bg-[#004AC1] text-white font-bold flex items-center justify-center shadow-md">
+                <span className="material-symbols-outlined text-2xl">history_edu</span>
               </div>
             </div>
           </div>
@@ -360,7 +509,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
         <h2 className="text-2xl sm:text-4xl font-extrabold font-['Manrope']">
           Ready to elevate your research?
         </h2>
-        <p className="text-xs sm:text-sm text-blue-100 max-w-xl mx-auto font-['Work_Sans']">
+        <p className="text-xs sm:text-sm text-blue-100 max-w-xl mx-auto">
           Work with zero hallucinations, authentic citations, and deterministic evidence verification.
         </p>
 
@@ -369,13 +518,13 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
             onClick={() => onNavigate('upload')}
             className="w-full sm:w-auto px-8 py-3.5 bg-white text-[#004AC1] rounded-2xl font-bold text-xs hover:bg-blue-50 shadow-xl transition-all cursor-pointer"
           >
-            Import Knowledge Base
+            1. Import Knowledge Base
           </button>
           <button
             onClick={() => onNavigate('investigate')}
             className="w-full sm:w-auto px-8 py-3.5 bg-transparent border-2 border-white/30 text-white rounded-2xl font-bold text-xs hover:bg-white/10 transition-all cursor-pointer"
           >
-            Launch Deep Workspace
+            3. Launch Deep Workspace
           </button>
         </div>
       </section>
