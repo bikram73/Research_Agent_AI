@@ -23,7 +23,7 @@ export interface SourceFile {
   id: string;
   name: string;
   size: string;
-  type: 'pdf' | 'docx' | 'txt' | 'csv' | 'web' | 'md' | 'json' | 'html';
+  type: 'pdf' | 'docx' | 'txt' | 'csv' | 'md' | 'json' | 'html';
   status: 'complete' | 'processing' | 'waiting' | 'error';
   progress?: number;
   statusText: string;
@@ -69,7 +69,8 @@ export interface CitationData {
   similarityScore: number;
   extractedParagraph: string;
   publication: string;
-  doi: string;
+  provenanceId: string;
+  doi?: string;
   sourceTitle: string;
 }
 

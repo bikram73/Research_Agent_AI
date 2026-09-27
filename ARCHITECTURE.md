@@ -27,7 +27,7 @@ This document outlines the complete architectural design, data pipelines, retrie
    │  - DOCX Parser (mammoth)           │     │  - Vector Similarity & Cosine Token Overlap     │
    │  - Text / MD / CSV / JSON Parsers  │     │  - Dynamic Chunk Ranking & Threshold Filtering  │
    │  - Semantic Chunker with Spans     │     │  - Citation Attribution Graph                   │
-   │  - Page Coordinate Mapping         │     │  - Anti-Hallucination Verification Layer        │
+   │  - Page Reference & Offset Mapping │     │  - Anti-Hallucination Verification Layer        │
    └────────────────────────────────────┘     └─────────────────────────────────────────────────┘
                       │                                          │
                       ▼                                          ▼

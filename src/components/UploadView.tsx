@@ -10,7 +10,6 @@ export const UploadView: React.FC<UploadViewProps> = ({ onNavigate }) => {
   const { 
     sources, 
     uploadFiles, 
-    addWebSource, 
     removeSource, 
     clearAllSources, 
     loadQATestDataset, 
@@ -18,8 +17,6 @@ export const UploadView: React.FC<UploadViewProps> = ({ onNavigate }) => {
     isProcessing 
   } = useResearch();
 
-  const [urlInput, setUrlInput] = useState('');
-  const [isAddingUrl, setIsAddingUrl] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -53,13 +50,6 @@ export const UploadView: React.FC<UploadViewProps> = ({ onNavigate }) => {
     }
   };
 
-  const handleAddUrl = () => {
-    if (!urlInput.trim()) return;
-    addWebSource(urlInput.trim());
-    setUrlInput('');
-    setIsAddingUrl(false);
-  };
-
   const completeSources = sources.filter((s) => s.status === 'complete');
   const errorSources = sources.filter((s) => s.status === 'error');
 
@@ -71,7 +61,7 @@ export const UploadView: React.FC<UploadViewProps> = ({ onNavigate }) => {
         ref={fileInputRef}
         type="file"
         multiple
-        accept=".pdf,.docx,.doc,.txt,.csv,.xls,.xlsx,.md,.json,.html"
+        accept=".pdf,.docx,.txt,.csv,.md,.json,.html"
         className="hidden"
         onChange={handleFileInputChange}
       />
@@ -86,7 +76,7 @@ export const UploadView: React.FC<UploadViewProps> = ({ onNavigate }) => {
             </h1>
           </div>
           <p className="text-xs text-[#5C5D69] mt-1">
-            Upload research papers, PDF files, documents, or Web URLs to seed the AI grounding index.
+            Upload research papers, PDF files, and multi-format documents to seed the grounding index.
           </p>
         </div>
 
@@ -181,48 +171,13 @@ export const UploadView: React.FC<UploadViewProps> = ({ onNavigate }) => {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="px-5 py-2.5 rounded-xl bg-[#004AC1] hover:bg-[#003896] text-white text-xs font-bold shadow-md transition-all active:scale-95 flex items-center gap-1.5"
+                className="px-6 py-2.5 rounded-xl bg-[#004AC1] hover:bg-[#003896] text-white text-xs font-bold shadow-md transition-all active:scale-95 flex items-center gap-2"
               >
                 <span className="material-symbols-outlined text-[16px]">folder_open</span>
-                <span>Browse Files</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setIsAddingUrl(!isAddingUrl)}
-                className="px-5 py-2.5 rounded-xl bg-[#F0EFFF] hover:bg-[#E5E2FF] text-[#004AC1] text-xs font-bold transition-all border border-[#C5C4FF] flex items-center gap-1.5"
-              >
-                <span className="material-symbols-outlined text-[16px]">link</span>
-                <span>Paste Web Link</span>
+                <span>Select & Upload Files</span>
               </button>
             </div>
           </div>
-
-          {/* Add Web Link Input Accordion */}
-          {isAddingUrl && (
-            <div className="p-4 rounded-2xl bg-white border border-[#004AC1]/30 shadow-md space-y-3 animate-fadeIn">
-              <label className="text-xs font-bold text-[#191B23]">
-                Enter Web Article or ArXiv URL:
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  placeholder="https://arxiv.org/abs/2401.00000"
-                  value={urlInput}
-                  onChange={(e) => setUrlInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleAddUrl()}
-                  className="flex-1 px-3.5 py-2 rounded-xl border border-[#DCD9FF] text-xs focus:outline-none focus:border-[#004AC1]"
-                />
-                <button
-                  type="button"
-                  onClick={handleAddUrl}
-                  className="px-4 py-2 rounded-xl bg-[#004AC1] text-white text-xs font-bold hover:bg-[#003896] transition-colors"
-                >
-                  Fetch
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* Supported Format Specifications Card */}
           <div className="p-5 rounded-3xl bg-white border border-[#E0E0FF] shadow-sm space-y-3">

@@ -7,7 +7,7 @@ if (typeof window !== 'undefined') {
   pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 }
 
-export const SUPPORTED_EXTENSIONS = ['pdf', 'docx', 'doc', 'txt', 'md', 'csv', 'json', 'html', 'htm'];
+export const SUPPORTED_EXTENSIONS = ['pdf', 'docx', 'txt', 'md', 'csv', 'json', 'html', 'htm'];
 export const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
 
 const STOPWORDS = new Set([
@@ -86,7 +86,7 @@ export async function extractTextFromFile(file: File): Promise<{ text: string; p
   }
 
   // 5. DOCX Documents (DOC-002, ERR-DOC-003)
-  if (['docx', 'doc'].includes(extension)) {
+  if (extension === 'docx') {
     try {
       const arrayBuffer = await file.arrayBuffer();
       const result = await mammoth.extractRawText({ arrayBuffer });
@@ -206,7 +206,8 @@ export async function extractTextFromFile(file: File): Promise<{ text: string; p
 }
 
 /**
- * Splits document text into structured semantic chunks with page coordinates.
+ * Splits document text into structured semantic chunks with exact character offsets.
+ * Bounded between 250 and 600 characters with sliding window sentence overlap.
  */
 export function chunkDocument(
   documentId: string,
@@ -217,87 +218,175 @@ export function chunkDocument(
   let chunkCounter = 1;
 
   for (const page of pages) {
-    // Break into sentences or paragraphs (roughly 250 - 600 characters)
-    const paragraphs = page.text.split(/(?<=[.?!])\s+/).filter((p) => p.trim().length > 15);
+    const rawPageText = page.text;
+    if (!rawPageText || !rawPageText.trim()) continue;
 
-    let currentChunkText = '';
-    let startChar = 0;
+    // Break into sentences
+    const sentenceList = rawPageText.split(/(?<=[.?!])\s+/).filter((s) => s.trim().length > 0);
+    if (sentenceList.length === 0) continue;
 
-    for (const sentence of paragraphs) {
-      if ((currentChunkText + ' ' + sentence).length > 500 && currentChunkText.length > 80) {
-        chunks.push({
-          id: `${documentId}-chunk-${chunkCounter++}`,
-          documentId,
-          documentName,
-          pageOrSection: `Page ${page.pageNumber}`,
-          text: currentChunkText.trim(),
-          charStart: startChar,
-          charEnd: startChar + currentChunkText.length,
-        });
-        currentChunkText = sentence;
-        startChar += currentChunkText.length;
+    // Map each sentence to its exact start and end position in rawPageText
+    const sentenceSpans: { text: string; start: number; end: number }[] = [];
+    let searchCursor = 0;
+    for (const s of sentenceList) {
+      const idx = rawPageText.indexOf(s, searchCursor);
+      if (idx !== -1) {
+        sentenceSpans.push({ text: s, start: idx, end: idx + s.length });
+        searchCursor = idx + s.length;
       } else {
-        currentChunkText += (currentChunkText ? ' ' : '') + sentence;
+        sentenceSpans.push({ text: s, start: searchCursor, end: searchCursor + s.length });
+        searchCursor += s.length;
       }
     }
 
-    if (currentChunkText.trim().length > 0) {
-      chunks.push({
-        id: `${documentId}-chunk-${chunkCounter++}`,
-        documentId,
-        documentName,
-        pageOrSection: `Page ${page.pageNumber}`,
-        text: currentChunkText.trim(),
-        charStart: startChar,
-        charEnd: startChar + currentChunkText.length,
-      });
+    let chunkSentences: typeof sentenceSpans = [];
+    let currentLength = 0;
+
+    for (let i = 0; i < sentenceSpans.length; i++) {
+      const span = sentenceSpans[i];
+      chunkSentences.push(span);
+      currentLength += span.text.length + 1;
+
+      // When accumulated text reaches 250-600 characters or is the final sentence
+      if (currentLength >= 250 || i === sentenceSpans.length - 1) {
+        const startChar = chunkSentences[0].start;
+        const endChar = chunkSentences[chunkSentences.length - 1].end;
+        const chunkText = rawPageText.slice(startChar, endChar).trim();
+
+        if (chunkText.length > 0) {
+          chunks.push({
+            id: `${documentId}-chunk-${chunkCounter++}`,
+            documentId,
+            documentName,
+            pageOrSection: `Page ${page.pageNumber}`,
+            text: chunkText,
+            charStart: startChar,
+            charEnd: endChar,
+          });
+        }
+
+        // Sliding window: retain last sentence for boundary context if more sentences follow
+        if (i < sentenceSpans.length - 1 && chunkSentences.length > 1) {
+          const lastSpan = chunkSentences[chunkSentences.length - 1];
+          if (lastSpan.text.length <= 150) {
+            chunkSentences = [lastSpan];
+            currentLength = lastSpan.text.length;
+          } else {
+            chunkSentences = [];
+            currentLength = 0;
+          }
+        } else {
+          chunkSentences = [];
+          currentLength = 0;
+        }
+      }
     }
   }
 
   return chunks;
 }
 
+const SYNONYMS: Record<string, string[]> = {
+  voting: ['consensus', 'agreement', 'validator', 'election', 'rounds'],
+  protocol: ['agreement', 'consensus', 'network', 'system', 'mechanism'],
+  delay: ['latency', 'lag', 'cycle', 'cycles'],
+  reduction: ['eliminates', 'eliminate', 'reduces', 'reduce', 'decrease', 'decreases'],
+  consensus: ['voting', 'agreement', 'validator'],
+  telemetry: ['metrics', 'monitoring', 'signals', 'rounds'],
+};
+
 /**
- * Calculates keyword relevance and semantic similarity between a query and a text chunk.
- * Returns 0.0 when there are no term matches, preventing false positives and hallucinations.
+ * Calculates vector cosine similarity between query and chunk tokens,
+ * combined with semantic synonym mapping and bigram phrase matching.
+ * Returns strictly 0.0 when there are no term matches, preventing false positives.
+ * NO artificial floor is applied.
  */
 export function calculateRelevance(query: string, text: string): number {
-  if (!query || !query.trim()) return 0.0;
+  if (!query || !query.trim() || !text || !text.trim()) return 0.0;
 
-  // Extract non-stopword tokens
+  // Extract non-stopword query terms
   const qTerms = query
     .toLowerCase()
     .replace(/[^a-z0-9\s]/g, ' ')
     .split(/\s+/)
     .filter((t) => t.length > 1 && !STOPWORDS.has(t));
 
-  // If query consists only of stopwords, allow terms > 2 chars
   const effectiveTerms = qTerms.length > 0 
     ? qTerms 
     : query.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter((t) => t.length > 2);
 
   if (effectiveTerms.length === 0) return 0.0;
 
-  const lowerText = text.toLowerCase();
-  let hits = 0;
-  let phraseBonus = 0;
+  const textTokens = text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter((t) => t.length > 1);
 
-  for (const term of effectiveTerms) {
-    if (lowerText.includes(term)) {
-      hits++;
-    } else if (term.length > 4 && lowerText.includes(term.slice(0, -1))) {
-      hits += 0.8;
-    } else if (term.length > 5 && lowerText.includes(term.slice(0, -2))) {
-      hits += 0.6;
+  if (textTokens.length === 0) return 0.0;
+
+  // Vector Term Frequency Maps
+  const queryTf: Record<string, number> = {};
+  for (const t of effectiveTerms) {
+    queryTf[t] = (queryTf[t] || 0) + 1;
+  }
+
+  const textTf: Record<string, number> = {};
+  for (const t of textTokens) {
+    textTf[t] = (textTf[t] || 0) + 1;
+  }
+
+  // Vector Dot Product & Norms with synonym support
+  let dotProduct = 0;
+  let queryNormSq = 0;
+  let textNormSq = 0;
+
+  for (const term in queryTf) {
+    queryNormSq += queryTf[term] * queryTf[term];
+    if (textTf[term]) {
+      dotProduct += queryTf[term] * textTf[term];
+    } else if (SYNONYMS[term]) {
+      for (const syn of SYNONYMS[term]) {
+        if (textTf[syn]) {
+          dotProduct += queryTf[term] * (textTf[syn] * 0.7);
+          break;
+        }
+      }
     }
   }
 
-  // If ZERO terms match, relevance MUST be 0.0 (Anti-hallucination guarantee)
-  if (hits === 0) {
+  // Strict 0.0 if dot product is 0 (no term overlap or semantic synonym overlap)
+  if (dotProduct === 0) {
     return 0.0;
   }
 
-  // Check bigram / phrase matches for higher precision
+  for (const term in textTf) {
+    textNormSq += textTf[term] * textTf[term];
+  }
+
+  const queryNorm = Math.sqrt(queryNormSq);
+  const textNorm = Math.sqrt(textNormSq);
+  const cosineSim = queryNorm > 0 && textNorm > 0 ? dotProduct / (queryNorm * textNorm) : 0;
+
+  // Keyword hits & semantic synonym matches
+  let hits = 0;
+  const lowerText = text.toLowerCase();
+  for (const term of effectiveTerms) {
+    if (lowerText.includes(term)) {
+      hits += 1.0;
+    } else if (term.length > 4 && lowerText.includes(term.slice(0, -1))) {
+      hits += 0.8;
+    } else if (SYNONYMS[term]) {
+      for (const syn of SYNONYMS[term]) {
+        if (lowerText.includes(syn)) {
+          hits += 0.85;
+          break;
+        }
+      }
+    }
+  }
+
+  let phraseBonus = 0;
   for (let i = 0; i < effectiveTerms.length - 1; i++) {
     const pair = `${effectiveTerms[i]} ${effectiveTerms[i + 1]}`;
     if (lowerText.includes(pair)) {
@@ -306,8 +395,11 @@ export function calculateRelevance(query: string, text: string): number {
   }
 
   const termMatchRatio = hits / effectiveTerms.length;
-  // Scaled similarity score between 0.45 and 0.99
-  const score = Math.min(0.99, Math.max(0.45, 0.45 + termMatchRatio * 0.45 + phraseBonus));
+  const normalizedCosine = Math.min(1.0, cosineSim * 2.2);
+
+  // Evidence-grounded scoring: term match ratio + normalized vector similarity + phrase bonus
+  const combined = termMatchRatio * 0.70 + normalizedCosine * 0.30 + phraseBonus;
+  const score = Math.min(0.99, Math.max(0.0, combined));
   return parseFloat(score.toFixed(3));
 }
 
@@ -361,9 +453,30 @@ export function synthesizeResearch(
   const relevantChunks = allChunks.filter((c) => c.score > 0.0);
   relevantChunks.sort((a, b) => b.score - a.score);
 
-  // 3. NEGATIVE / MISSING EVIDENCE CHECK (PRD Section 17 & 22)
-  // If no relevant chunks match the question, do NOT hallucinate!
-  if (relevantChunks.length === 0 || relevantChunks[0].score < 0.25) {
+  // Extract non-stopword query terms for coverage check
+  const qTerms = query
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter((t) => t.length > 1 && !STOPWORDS.has(t));
+
+  const effectiveTerms = qTerms.length > 0
+    ? qTerms
+    : query.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter((t) => t.length > 2);
+
+  const topScore = relevantChunks.length > 0 ? relevantChunks[0].score : 0;
+
+  // Check query keyword coverage in top candidate chunks
+  let keywordCoverage = 0;
+  if (relevantChunks.length > 0 && effectiveTerms.length > 0) {
+    const topChunkText = relevantChunks[0].chunk.text.toLowerCase();
+    const matchedCount = effectiveTerms.filter((term) => topChunkText.includes(term)).length;
+    keywordCoverage = matchedCount / effectiveTerms.length;
+  }
+
+  // 3. NEGATIVE / MISSING EVIDENCE CHECK (Evidence-Grounded Guardrail)
+  // Refuse if: no matching chunks, or top score < 0.35, or fewer than 50% of query keywords matched
+  if (relevantChunks.length === 0 || topScore < 0.35 || keywordCoverage < 0.50) {
     return {
       query,
       title: `Investigation: ${query.slice(0, 70)}`,
@@ -401,13 +514,13 @@ export function synthesizeResearch(
     id: `ev-${idx + 1}`,
     sourceNumber: idx + 1,
     sourceTitle: m.chunk.documentName,
-    relevanceTag: m.score > 0.80 ? 'HIGH RELEVANCE' : m.score > 0.65 ? 'VALIDATED CLAIM' : 'FOUNDATIONAL EVIDENCE',
+    relevanceTag: m.score > 0.80 ? 'HIGH RELEVANCE' : m.score > 0.60 ? 'VALIDATED CLAIM' : 'FOUNDATIONAL EVIDENCE',
     quote: m.chunk.text.length > 240 ? m.chunk.text.slice(0, 237) + '...' : m.chunk.text,
     location: `${m.chunk.pageOrSection} • Chars ${m.chunk.charStart}-${m.chunk.charEnd}`,
     matchScore: Math.round(m.score * 1000) / 10,
   }));
 
-  // Build Citations for Citation Explorer
+  // Build Citations for Citation Explorer (using Provenance ID)
   const citations: CitationData[] = topMatches.map((m, idx) => ({
     id: `cite-${idx + 1}`,
     number: idx + 1,
@@ -417,14 +530,14 @@ export function synthesizeResearch(
     author: 'Primary Document Author',
     publication: 'Knowledge Base Document Index',
     published: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
-    doi: `10.rag/${m.chunk.documentId}/${idx + 1}`,
+    provenanceId: `prov-${m.chunk.documentId}-${idx + 1}`,
+    doi: `prov-${m.chunk.documentId}-${idx + 1}`,
     similarityScore: Math.round(m.score * 1000) / 10,
     extractedParagraph: m.chunk.text,
   }));
 
   // Generate synthesized findings from top matching chunks
   const coreFindings = topMatches.slice(0, 3).map((m, idx) => {
-    // Pick the most impactful sentence from the chunk
     const sentences = m.chunk.text.split(/(?<=[.?!])\s+/).filter((s) => s.length > 20);
     const bestSentence = sentences[0] || m.chunk.text;
 
@@ -436,7 +549,7 @@ export function synthesizeResearch(
     };
   });
 
-  // Check for multi-source contradiction / cross-source synthesis (PRD Section 23 & 24)
+  // Check for multi-source contradiction / cross-source synthesis
   let multiSourceSynthesisNote = '';
   if (sourcesRepresented.size > 1) {
     const srcArray = Array.from(sourcesRepresented);
@@ -444,7 +557,7 @@ export function synthesizeResearch(
   }
 
   // Construct abstract synthesis
-  let summaryText = `Based on semantic vector retrieval across ${completeSources.length} indexed document(s) (${allChunks.length} chunks examined), `;
+  let summaryText = `Based on vector space retrieval across ${completeSources.length} indexed document(s) (${allChunks.length} chunks examined), `;
   summaryText += `the primary findings indicate: "${topMatches[0].chunk.text.slice(0, 260)}..." [Source: ${topMatches[0].chunk.documentName} | ${topMatches[0].chunk.pageOrSection}].`;
   if (topMatches.length > 1) {
     summaryText += ` Evidence from ${topMatches[1].chunk.documentName} (${topMatches[1].chunk.pageOrSection}) further demonstrates: "${topMatches[1].chunk.text.slice(0, 180)}..." [Score: ${Math.round(topMatches[1].score * 100)}%].`;

@@ -122,7 +122,7 @@
 | **Build Tool** | ![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white) | `6.2.3` | Instant HMR, lightning-fast compilation, optimized asset bundling |
 | **Styling** | ![Tailwind CSS](https://img.shields.io/badge/Tailwind-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white) | `4.1.14` | Modern utility-first styling with `@tailwindcss/vite` |
 | **Icons & UI** | ![Lucide](https://img.shields.io/badge/Lucide_React-F56565?style=flat-square) | `0.546.0` | Comprehensive research, document, and pipeline iconography |
-| **PDF Extraction** | ![PDF.js](https://img.shields.io/badge/pdfjs--dist-E0234E?style=flat-square) | `6.3.289` | Client-side page-by-page PDF stream parsing and coordinate indexing |
+| **PDF Extraction** | ![PDF.js](https://img.shields.io/badge/pdfjs--dist-E0234E?style=flat-square) | `6.3.289` | Client-side page-by-page PDF stream parsing and page/character offset provenance |
 | **DOCX Extraction**| ![Mammoth](https://img.shields.io/badge/Mammoth-2B579A?style=flat-square) | `1.13.0` | Clean XML conversion and raw text parsing for Word `.docx` documents |
 | **AI SDK** | ![Google GenAI](https://img.shields.io/badge/@google/genai-4285F4?style=flat-square&logo=google&logoColor=white) | `2.4.0` | Modern SDK for Gemini 2.5 Flash / Pro reasoning and grounded synthesis |
 | **Hosting & Deploy**| ![Netlify](https://img.shields.io/badge/Netlify-00C7B7?style=flat-square&logo=netlify&logoColor=white) | `Node 20` | SPA redirects, automated static deployment, edge caching headers |
@@ -272,7 +272,7 @@ const { text, pages } = await extractTextFromFile(uploadedFile);
 ```
 
 #### 2. `chunkDocument(docId, docName, pages)`
-Partitions extracted pages into indexed semantic chunks with coordinate metadata.
+Partitions extracted pages into indexed semantic chunks with page-level reference and character offset metadata.
 ```typescript
 const chunks: DocumentChunk[] = chunkDocument('doc-01', 'Quantum_Paper.pdf', pages);
 ```
