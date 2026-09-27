@@ -17,8 +17,19 @@ const STOPWORDS = new Set([
   'of', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there',
   'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most',
   'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than',
-  'too', 'very', 'can', 'will', 'just', 'should', 'now', 'what', 'which', 'who', 'does'
+  'too', 'very', 'can', 'will', 'just', 'should', 'now', 'what', 'which', 'who', 'does',
+  'do', 'did', 'having', 'have', 'has', 'i', 'my', 'me', 'you', 'your', 'we', 'our',
+  'it', 'its', 'they', 'them', 'their', 'this', 'that', 'these', 'those', 'could', 'would',
+  'please', 'tell', 'give', 'show', 'find', 'explain', 'detail', 'details', 'info', 'information',
+  'asking', 'questions', 'answers', 'answer', 'question', 'got', 'didn', 't', 's'
 ]);
+
+export function stemWord(word: string): string {
+  if (word.length <= 3) return word;
+  return word
+    .replace(/(ing|tion|tions|ment|ments|ness|able|ible|ized|ised|izes|ises|ed|es|s|ly|al|ic)$/i, '')
+    .trim();
+}
 
 /**
  * Extracts plain text from an uploaded File object (PDF, DOCX, TXT, CSV, MD, JSON, HTML).
@@ -311,11 +322,19 @@ const SYNONYMS: Record<string, string[]> = {
   reduction: ['eliminates', 'eliminate', 'reduces', 'reduce', 'decrease', 'decreases'],
   consensus: ['voting', 'agreement', 'validator'],
   telemetry: ['metrics', 'monitoring', 'signals', 'rounds'],
+  process: ['workflow', 'pipeline', 'steps', 'system', 'work', 'procedure', 'mechanism', 'memory', 'retrieval', 'ingestion'],
+  using: ['use', 'usage', 'operation', 'run', 'work'],
+  project: ['system', 'application', 'workstation', 'agent', 'architecture'],
+  feature: ['capabilities', 'functionality', 'capability', 'functions', 'specs'],
+  format: ['formats', 'pdf', 'docx', 'txt', 'md', 'csv', 'json', 'html'],
+  citation: ['reference', 'provenance', 'quotes', 'offsets', 'verification'],
+  accuracy: ['precision', 'grounded', 'hallucination', 'verified', 'validation'],
+  throughput: ['tps', 'transactions', 'performance', 'speed', 'bandwidth'],
 };
 
 /**
  * Calculates vector cosine similarity between query and chunk tokens,
- * combined with semantic synonym mapping and bigram phrase matching.
+ * combined with semantic synonym mapping, stemming, and bigram phrase matching.
  * Returns strictly 0.0 when there are no term matches, preventing false positives.
  * NO artificial floor is applied.
  */
@@ -323,15 +342,14 @@ export function calculateRelevance(query: string, text: string): number {
   if (!query || !query.trim() || !text || !text.trim()) return 0.0;
 
   // Extract non-stopword query terms
-  const qTerms = query
+  const rawTerms = query
     .toLowerCase()
     .replace(/[^a-z0-9\s]/g, ' ')
     .split(/\s+/)
-    .filter((t) => t.length > 1 && !STOPWORDS.has(t));
+    .filter((t) => t.length > 1);
 
-  const effectiveTerms = qTerms.length > 0 
-    ? qTerms 
-    : query.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter((t) => t.length > 2);
+  const nonStop = rawTerms.filter((t) => !STOPWORDS.has(t));
+  const effectiveTerms = nonStop.length > 0 ? nonStop : rawTerms.filter((t) => t.length > 2);
 
   if (effectiveTerms.length === 0) return 0.0;
 
@@ -342,6 +360,8 @@ export function calculateRelevance(query: string, text: string): number {
     .filter((t) => t.length > 1);
 
   if (textTokens.length === 0) return 0.0;
+
+  const textStems = new Set(textTokens.map(stemWord));
 
   // Vector Term Frequency Maps
   const queryTf: Record<string, number> = {};
@@ -361,12 +381,19 @@ export function calculateRelevance(query: string, text: string): number {
 
   for (const term in queryTf) {
     queryNormSq += queryTf[term] * queryTf[term];
+    const stemmed = stemWord(term);
+
     if (textTf[term]) {
       dotProduct += queryTf[term] * textTf[term];
+    } else if (textStems.has(stemmed)) {
+      dotProduct += queryTf[term] * 0.85;
     } else if (SYNONYMS[term]) {
       for (const syn of SYNONYMS[term]) {
         if (textTf[syn]) {
           dotProduct += queryTf[term] * (textTf[syn] * 0.7);
+          break;
+        } else if (textStems.has(stemWord(syn))) {
+          dotProduct += queryTf[term] * 0.6;
           break;
         }
       }
@@ -390,13 +417,16 @@ export function calculateRelevance(query: string, text: string): number {
   let hits = 0;
   const lowerText = text.toLowerCase();
   for (const term of effectiveTerms) {
+    const stemmed = stemWord(term);
     if (lowerText.includes(term)) {
       hits += 1.0;
+    } else if (textStems.has(stemmed) || (stemmed.length >= 3 && lowerText.includes(stemmed))) {
+      hits += 0.85;
     } else if (term.length > 4 && lowerText.includes(term.slice(0, -1))) {
       hits += 0.8;
     } else if (SYNONYMS[term]) {
       for (const syn of SYNONYMS[term]) {
-        if (lowerText.includes(syn)) {
+        if (lowerText.includes(syn) || textStems.has(stemWord(syn))) {
           hits += 0.85;
           break;
         }
@@ -472,29 +502,33 @@ export function synthesizeResearch(
   relevantChunks.sort((a, b) => b.score - a.score);
 
   // Extract non-stopword query terms for coverage check
-  const qTerms = query
+  const rawTerms = query
     .toLowerCase()
     .replace(/[^a-z0-9\s]/g, ' ')
     .split(/\s+/)
-    .filter((t) => t.length > 1 && !STOPWORDS.has(t));
+    .filter((t) => t.length > 1);
 
-  const effectiveTerms = qTerms.length > 0
-    ? qTerms
-    : query.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter((t) => t.length > 2);
+  const nonStop = rawTerms.filter((t) => !STOPWORDS.has(t));
+  const effectiveTerms = nonStop.length > 0 ? nonStop : rawTerms.filter((t) => t.length > 2);
 
   const topScore = relevantChunks.length > 0 ? relevantChunks[0].score : 0;
 
-  // Check query keyword coverage in top candidate chunks
+  // Check cumulative query keyword coverage across top candidate chunks
   let keywordCoverage = 0;
   if (relevantChunks.length > 0 && effectiveTerms.length > 0) {
-    const topChunkText = relevantChunks[0].chunk.text.toLowerCase();
-    const matchedCount = effectiveTerms.filter((term) => topChunkText.includes(term)).length;
+    const candidateTexts = relevantChunks.slice(0, 5).map((c) => c.chunk.text.toLowerCase()).join(' ');
+    const matchedCount = effectiveTerms.filter((term) => {
+      const stemmed = stemWord(term);
+      return candidateTexts.includes(term) || (stemmed.length >= 3 && candidateTexts.includes(stemmed)) || (SYNONYMS[term] && SYNONYMS[term].some((s) => candidateTexts.includes(s)));
+    }).length;
     keywordCoverage = matchedCount / effectiveTerms.length;
   }
 
   // 3. NEGATIVE / MISSING EVIDENCE CHECK (Evidence-Grounded Guardrail)
-  // Refuse if: no matching chunks, or top score < 0.35, or fewer than 50% of query keywords matched
-  if (relevantChunks.length === 0 || topScore < 0.35 || keywordCoverage < 0.50) {
+  // Refuse if: no matching chunks, or top score is 0, or neither score nor keyword coverage is acceptable
+  const hasGroundedEvidence = relevantChunks.length > 0 && topScore >= 0.35 && (keywordCoverage >= 0.30 || topScore >= 0.60);
+
+  if (!hasGroundedEvidence) {
     return {
       query,
       title: `Investigation: ${query.slice(0, 70)}`,
@@ -555,12 +589,16 @@ export function synthesizeResearch(
   }));
 
   // Generate synthesized findings from top matching chunks
-  const coreFindings = topMatches.slice(0, 3).map((m, idx) => {
-    const sentences = m.chunk.text.split(/(?<=[.?!])\s+/).filter((s) => s.length > 20);
-    const bestSentence = sentences[0] || m.chunk.text;
+  const coreFindings = topMatches.slice(0, 4).map((m, idx) => {
+    const sentences = m.chunk.text.split(/(?<=[.?!])\s+/).filter((s) => s.trim().length > 15);
+    const matchingSentence = sentences.find((s) => {
+      const lower = s.toLowerCase();
+      return effectiveTerms.some((t) => lower.includes(t) || lower.includes(stemWord(t)));
+    });
+    const bestSentence = matchingSentence || sentences[0] || m.chunk.text;
 
     return {
-      finding: bestSentence,
+      finding: bestSentence.trim(),
       citationRef: `Source [${idx + 1}]`,
       sourceTitle: m.chunk.documentName,
       page: m.chunk.pageOrSection,
