@@ -38,45 +38,45 @@ export const Footer: React.FC<FooterProps> = ({ currentView, onNavigate }) => {
         <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] font-medium">
           <button 
             onClick={() => onNavigate('home')} 
-            className={`transition-colors hover:text-[#004AC1] ${currentView === 'home' ? 'text-[#004AC1] font-bold' : 'text-[#5C5D69]'}`}
+            className={`transition-colors hover:text-[#004AC1] cursor-pointer ${currentView === 'home' ? 'text-[#004AC1] font-bold' : 'text-[#5C5D69]'}`}
           >
             Overview
           </button>
           <button 
             onClick={() => onNavigate('upload')} 
-            className={`transition-colors hover:text-[#004AC1] ${currentView === 'upload' ? 'text-[#004AC1] font-bold' : 'text-[#5C5D69]'}`}
+            className={`transition-colors hover:text-[#004AC1] cursor-pointer ${currentView === 'upload' ? 'text-[#004AC1] font-bold' : 'text-[#5C5D69]'}`}
           >
-            Import
-          </button>
-          <button 
-            onClick={() => onNavigate('investigate')} 
-            className={`transition-colors hover:text-[#004AC1] ${currentView === 'investigate' ? 'text-[#004AC1] font-bold' : 'text-[#5C5D69]'}`}
-          >
-            Workspace
-          </button>
-          <button 
-            onClick={() => onNavigate('citations')} 
-            className={`transition-colors hover:text-[#004AC1] ${currentView === 'citations' ? 'text-[#004AC1] font-bold' : 'text-[#5C5D69]'}`}
-          >
-            Citations
+            1. Import Sources
           </button>
           <button 
             onClick={() => onNavigate('pipeline')} 
-            className={`transition-colors hover:text-[#004AC1] ${currentView === 'pipeline' ? 'text-[#004AC1] font-bold' : 'text-[#5C5D69]'}`}
+            className={`transition-colors hover:text-[#004AC1] cursor-pointer ${currentView === 'pipeline' ? 'text-[#004AC1] font-bold' : 'text-[#5C5D69]'}`}
           >
-            Pipeline
+            2. Pipeline
+          </button>
+          <button 
+            onClick={() => onNavigate('investigate')} 
+            className={`transition-colors hover:text-[#004AC1] cursor-pointer ${currentView === 'investigate' ? 'text-[#004AC1] font-bold' : 'text-[#5C5D69]'}`}
+          >
+            3. Workspace
+          </button>
+          <button 
+            onClick={() => onNavigate('results')} 
+            className={`transition-colors hover:text-[#004AC1] cursor-pointer ${currentView === 'results' || currentView === 'citations' ? 'text-[#004AC1] font-bold' : 'text-[#5C5D69]'}`}
+          >
+            4. Results
           </button>
           <button 
             onClick={() => onNavigate('library')} 
-            className={`transition-colors hover:text-[#004AC1] ${currentView === 'library' ? 'text-[#004AC1] font-bold' : 'text-[#5C5D69]'}`}
+            className={`transition-colors hover:text-[#004AC1] cursor-pointer ${currentView === 'library' ? 'text-[#004AC1] font-bold' : 'text-[#5C5D69]'}`}
           >
             Library
           </button>
           <button 
             onClick={() => onNavigate('about')} 
-            className={`transition-colors hover:text-[#004AC1] ${currentView === 'about' ? 'text-[#004AC1] font-bold' : 'text-[#5C5D69]'}`}
+            className={`transition-colors hover:text-[#004AC1] cursor-pointer ${currentView === 'about' ? 'text-[#004AC1] font-bold' : 'text-[#5C5D69]'}`}
           >
-            About & Specs
+            About
           </button>
         </div>
 
