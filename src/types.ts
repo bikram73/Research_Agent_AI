@@ -8,16 +8,42 @@ export type NavView =
   | 'library'
   | 'about';
 
+export interface DocumentChunk {
+  id: string;
+  documentId: string;
+  documentName: string;
+  pageOrSection: string;
+  text: string;
+  charStart: number;
+  charEnd: number;
+  score?: number;
+}
+
 export interface SourceFile {
   id: string;
   name: string;
   size: string;
   type: 'pdf' | 'docx' | 'txt' | 'csv' | 'web';
-  status: 'complete' | 'processing' | 'waiting';
+  status: 'complete' | 'processing' | 'waiting' | 'error';
   progress?: number;
   statusText: string;
   date?: string;
   url?: string;
+  content?: string;
+  chunks?: DocumentChunk[];
+}
+
+export interface ResearchResult {
+  query: string;
+  title: string;
+  dateGenerated: string;
+  confidenceScore: number;
+  summary: string;
+  coreFindings: { finding: string; citationRef: string; sourceTitle: string; page: string }[];
+  evidenceSnippets: EvidenceSnippet[];
+  citations: CitationData[];
+  totalChunksExamined: number;
+  groundedSourcesCount: number;
 }
 
 export interface EvidenceSnippet {

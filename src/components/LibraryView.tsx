@@ -1,67 +1,21 @@
 import React, { useState } from 'react';
-import { NavView, SourceFile } from '../types';
+import { NavView } from '../types';
+import { useResearch } from '../context/ResearchContext';
 
 interface LibraryViewProps {
   onNavigate: (view: NavView) => void;
 }
 
 export const LibraryView: React.FC<LibraryViewProps> = ({ onNavigate }) => {
+  const { sources, removeSource } = useResearch();
   const [filter, setFilter] = useState<'all' | 'pdf' | 'docx' | 'web'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const [files, setFiles] = useState<SourceFile[]>([
-    {
-      id: '1',
-      name: 'Q4_Market_Analysis.pdf',
-      size: '4.2 MB',
-      type: 'pdf',
-      status: 'complete',
-      statusText: '100% Vectorized',
-      date: '2 hours ago',
-    },
-    {
-      id: '2',
-      name: 'Competitive_Landscape.docx',
-      size: '1.8 MB',
-      type: 'docx',
-      status: 'complete',
-      statusText: '100% Vectorized',
-      date: 'Yesterday',
-    },
-    {
-      id: '3',
-      name: 'Research_Notes_Final.txt',
-      size: '450 KB',
-      type: 'txt',
-      status: 'complete',
-      statusText: '100% Vectorized',
-      date: '3 days ago',
-    },
-    {
-      id: '4',
-      name: 'ArXiv_Quantum_Consensus.pdf',
-      size: '12.4 MB',
-      type: 'pdf',
-      status: 'complete',
-      statusText: '100% Vectorized',
-      date: '4 days ago',
-    },
-    {
-      id: '5',
-      name: 'https://techcrunch.com/2024/ai-infrastructure',
-      size: 'Web Article',
-      type: 'web',
-      status: 'complete',
-      statusText: '100% Scraped',
-      date: '5 days ago',
-    },
-  ]);
-
   const handleDelete = (id: string) => {
-    setFiles(files.filter(f => f.id !== id));
+    removeSource(id);
   };
 
-  const filteredFiles = files.filter((f) => {
+  const filteredFiles = sources.filter((f) => {
     if (filter !== 'all' && f.type !== filter) return false;
     if (searchQuery && !f.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
@@ -96,10 +50,10 @@ export const LibraryView: React.FC<LibraryViewProps> = ({ onNavigate }) => {
       {/* Library Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Total Index Sources', val: '128 Files', icon: 'folder_open' },
-          { label: 'Parsed Pages', val: '4,280 Pages', icon: 'auto_stories' },
-          { label: 'Vector Tokens', val: '1.2M Tokens', icon: 'memory' },
-          { label: 'Index Accuracy', val: '99.4%', icon: 'verified' },
+          { label: 'Active Index Sources', val: `${sources.length} Documents`, icon: 'folder_open' },
+          { label: 'Semantic Chunks', val: `${sources.reduce((acc, s) => acc + (s.chunks?.length || 1), 0)} Chunks`, icon: 'auto_stories' },
+          { label: 'Vector Density', val: '768-Dim Dense', icon: 'memory' },
+          { label: 'Retrieval Guardrail', val: 'Active (Cosine)', icon: 'verified' },
         ].map((s, i) => (
           <div key={i} className="p-4 rounded-2xl bg-white border border-[#E0E0FF] shadow-sm flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#F0EFFF] text-[#004AC1] flex items-center justify-center shrink-0">

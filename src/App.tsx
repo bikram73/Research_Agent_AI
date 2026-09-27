@@ -10,6 +10,7 @@ import { CitationExplorerView } from './components/CitationExplorerView';
 import { PipelineView } from './components/PipelineView';
 import { LibraryView } from './components/LibraryView';
 import { AboutView } from './components/AboutView';
+import { ResearchProvider } from './context/ResearchContext';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<NavView>('home');
@@ -38,19 +39,21 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF8FF] text-[#191B23] flex flex-col font-['Inter',sans-serif]">
-      {/* Top Navbar */}
-      <Navbar currentView={currentView} onNavigate={setCurrentView} />
+    <ResearchProvider>
+      <div className="min-h-screen bg-[#FAF8FF] text-[#191B23] flex flex-col font-['Inter',sans-serif]">
+        {/* Top Navbar */}
+        <Navbar currentView={currentView} onNavigate={setCurrentView} />
 
-      {/* Main Container */}
-      <div className="flex-1 flex max-w-7xl w-full mx-auto">
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
-          {renderActiveView()}
-        </main>
+        {/* Main Container */}
+        <div className="flex-1 flex max-w-7xl w-full mx-auto">
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+            {renderActiveView()}
+          </main>
+        </div>
+
+        {/* Mobile Bottom Navigation */}
+        <BottomBar currentView={currentView} onNavigate={setCurrentView} />
       </div>
-
-      {/* Mobile Bottom Navigation */}
-      <BottomBar currentView={currentView} onNavigate={setCurrentView} />
-    </div>
+    </ResearchProvider>
   );
 }

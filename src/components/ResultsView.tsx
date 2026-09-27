@@ -1,78 +1,44 @@
 import React, { useState } from 'react';
-import { NavView, EvidenceSnippet } from '../types';
+import { NavView } from '../types';
+import { useResearch } from '../context/ResearchContext';
 
 interface ResultsViewProps {
   onNavigate: (view: NavView) => void;
 }
 
 export const ResultsView: React.FC<ResultsViewProps> = ({ onNavigate }) => {
+  const { activeResult, currentQuery, sources } = useResearch();
   const [insufficientContextMode, setInsufficientContextMode] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
 
-  const evidenceSnippets: EvidenceSnippet[] = [
-    {
-      id: '1',
-      sourceNumber: 1,
-      sourceTitle: 'Quantum_Consensus_Paper.pdf',
-      relevanceTag: 'HIGH RELEVANCE',
-      quote: 'Instantaneous qubit state entanglement eliminates traditional Byzantine agreement network latency cycles by 34.8%.',
-      location: 'Section 4.2 • Page 14',
-      matchScore: 98.2,
-    },
-    {
-      id: '2',
-      sourceNumber: 2,
-      sourceTitle: 'Market_Infrastructure_Q4.pdf',
-      relevanceTag: 'VALIDATED CLAIM',
-      quote: 'Energy consumption of quantum consensus nodes decreased by 2.4x compared to Proof-of-Stake validator clusters.',
-      location: 'Figure 3.1 • Page 8',
-      matchScore: 94.1,
-    },
-    {
-      id: '3',
-      sourceNumber: 3,
-      sourceTitle: 'Cryptographic_Foundations.docx',
-      relevanceTag: 'FOUNDATIONAL EVIDENCE',
-      quote: 'No-cloning theorem ensures absolute protection against double-spend attacks without requiring computational proof-of-work.',
-      location: 'Paragraph 18 • Page 2',
-      matchScore: 91.5,
-    },
-  ];
+  const evidenceSnippets = activeResult.evidenceSnippets;
 
   const handleDownloadExport = (format: 'md' | 'txt' | 'json') => {
     let content = '';
     let filename = `Research_Synthesis_Report.${format}`;
 
     if (format === 'md') {
-      content = `# Impact of Quantum Entanglement on Distributed Ledger Consensus\n\n` +
-        `**Confidence Score:** 92% (Verified RAG Synthesis)\n` +
-        `**Date Generated:** ${new Date().toLocaleDateString()}\n\n` +
+      content = `# ${activeResult.title}\n\n` +
+        `**Confidence Score:** ${activeResult.confidenceScore}% (Verified Neural Grounding)\n` +
+        `**Date Generated:** ${activeResult.dateGenerated}\n\n` +
         `## Abstract Synthesis\n` +
-        `Recent experiments in quantum network infrastructure demonstrate that deploying entangled photon states across distributed consensus nodes fundamentally solves the latency bottleneck inherent in traditional Byzantine Fault Tolerance (BFT) protocols [Source: Quantum_Consensus_Paper.pdf | Page 14].\n\n` +
+        `${activeResult.summary}\n\n` +
         `## Core Findings\n` +
-        `- Quantum state entanglement reduces block propagation overhead by 34.8%.\n` +
-        `- Energy consumption of quantum consensus nodes decreased by 2.4x [Source: Market_Infrastructure_Q4.pdf | Page 8].\n` +
-        `- No-cloning theorem guarantees security against 51% attacks [Source: Cryptographic_Foundations.docx | Page 2].\n\n` +
-        `## Citations\n` +
-        `1. Dr. Elena Rostova et al., "Quantum Entanglement Protocols for BFT", IEEE 2024.\n` +
-        `2. Soren Lindqvist et al., "Q4 Enterprise Blockchain & Quantum Infrastructure Benchmarks", 2024.\n`;
+        activeResult.coreFindings.map((cf) => `- ${cf.finding} [Source: ${cf.sourceTitle} | ${cf.page}]`).join('\n') +
+        `\n\n## Citations\n` +
+        activeResult.citations.map((c, i) => `${i + 1}. [${c.sourceDocument}] "${c.extractedParagraph.slice(0, 140)}..." (Score: ${c.similarityScore}%)`).join('\n');
     } else if (format === 'txt') {
       content = `RESEARCH AGENT AI - SYNTHESIS REPORT\n=========================================\n\n` +
-        `Title: Impact of Quantum Entanglement on Distributed Ledger Consensus\n` +
-        `Confidence Score: 92%\n\n` +
-        `Synthesis:\nRecent experiments in quantum network infrastructure demonstrate that deploying entangled photon states across distributed consensus nodes fundamentally solves latency bottlenecks.\n\n` +
-        `Citations:\n- [Source 1] Quantum_Consensus_Paper.pdf Page 14\n- [Source 2] Market_Infrastructure_Q4.pdf Page 8\n- [Source 3] Cryptographic_Foundations.docx Page 2\n`;
+        `Title: ${activeResult.title}\n` +
+        `Confidence Score: ${activeResult.confidenceScore}%\n` +
+        `Date: ${activeResult.dateGenerated}\n\n` +
+        `Synthesis:\n${activeResult.summary}\n\n` +
+        `Core Findings:\n` +
+        activeResult.coreFindings.map((cf) => `* ${cf.finding} (${cf.sourceTitle} - ${cf.page})`).join('\n') +
+        `\n\nCitations:\n` +
+        activeResult.citations.map((c) => `- [${c.sourceDocument}] ${c.extractedParagraph.slice(0, 100)}...`).join('\n');
     } else {
-      content = JSON.stringify({
-        title: "Impact of Quantum Entanglement on Distributed Ledger Consensus",
-        confidenceScore: 0.92,
-        synthesis: "Recent experiments in quantum network infrastructure demonstrate that deploying entangled photon states across distributed consensus nodes fundamentally solves latency bottlenecks.",
-        citations: [
-          { id: 1, file: "Quantum_Consensus_Paper.pdf", page: 14, score: 0.982 },
-          { id: 2, file: "Market_Infrastructure_Q4.pdf", page: 8, score: 0.941 },
-          { id: 3, file: "Cryptographic_Foundations.docx", page: 2, score: 0.915 }
-        ]
-      }, null, 2);
+      content = JSON.stringify(activeResult, null, 2);
     }
 
     const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
@@ -86,6 +52,8 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ onNavigate }) => {
     URL.revokeObjectURL(url);
     setShowExportModal(false);
   };
+
+  const completeSources = sources.filter((s) => s.status === 'complete');
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-20 font-['Work_Sans']">
@@ -243,7 +211,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ onNavigate }) => {
               </div>
 
               <h1 className="text-2xl sm:text-3xl font-extrabold text-[#191B23] font-['Manrope'] leading-tight">
-                Impact of Quantum Entanglement on Distributed Ledger Consensus
+                {activeResult.title}
               </h1>
             </div>
 
@@ -254,7 +222,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ onNavigate }) => {
                   The uploaded sources do not contain enough information to answer this question.
                 </p>
                 <p>
-                  None of the vector-embedded chunks in <code className="text-[#004AC1]">Q4_Market_Analysis.pdf</code> or <code className="text-[#004AC1]">Competitive_Landscape.docx</code> reached the required cosine similarity threshold (0.75) for this question.
+                  None of the vector-embedded chunks in the knowledge base reached the required cosine similarity threshold (0.75) for this question.
                 </p>
                 <button
                   onClick={() => onNavigate('upload')}
@@ -265,69 +233,59 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ onNavigate }) => {
               </div>
             ) : (
               <div className="space-y-4 text-sm text-[#4A4B57] leading-relaxed font-['Work_Sans']">
-                
-                <p>
-                  Recent experiments in quantum network infrastructure demonstrate that deploying entangled photon states across distributed consensus nodes fundamentally solves the latency bottleneck inherent in traditional Byzantine Fault Tolerance (BFT) protocols
-                  <button 
-                    onClick={() => onNavigate('citations')}
-                    className="inline-flex items-center px-1.5 py-0.5 mx-1 rounded bg-[#E0E0FF] hover:bg-[#004AC1] hover:text-white text-[#004AC1] font-extrabold text-[11px] font-['JetBrains_Mono'] transition-all shadow-sm cursor-pointer"
-                    title="Source: ArXiv_Quantum_Consensus_Paper.pdf Page 14"
-                  >
-                    [1]
-                  </button>. 
-                  By leveraging non-local quantum state collapse, validator nodes can achieve simultaneous block verification without waiting for multiple network round-trips.
+                <p className="text-base text-[#191B23] leading-relaxed">
+                  {activeResult.summary}
                 </p>
 
                 {/* Key Finding Highlight Quote Box */}
-                <div className="p-5 rounded-2xl bg-[#FAF8FF] border-l-4 border-[#004AC1] space-y-2 shadow-sm">
-                  <div className="flex items-center gap-2 text-xs font-bold text-[#004AC1]">
-                    <span className="material-symbols-outlined text-[18px]">format_quote</span>
-                    <span>Core Empirical Discovery</span>
+                {activeResult.coreFindings.length > 0 && (
+                  <div className="p-5 rounded-2xl bg-[#FAF8FF] border-l-4 border-[#004AC1] space-y-2 shadow-sm">
+                    <div className="flex items-center gap-2 text-xs font-bold text-[#004AC1]">
+                      <span className="material-symbols-outlined text-[18px]">format_quote</span>
+                      <span>Verified Grounded Claim</span>
+                    </div>
+                    <p className="text-xs font-semibold text-[#191B23] italic leading-normal">
+                      "{activeResult.coreFindings[0].finding}"
+                    </p>
+                    <p className="text-[10px] text-[#808191] text-right font-['JetBrains_Mono']">
+                      — Source Document: {activeResult.coreFindings[0].sourceTitle} ({activeResult.coreFindings[0].page})
+                    </p>
                   </div>
-                  <p className="text-xs font-semibold text-[#191B23] italic leading-normal">
-                    "Quantum state entanglement reduces block propagation overhead by 34.8% while maintaining a 0% double-spend probability under adversarial network partition attacks."
-                  </p>
-                  <p className="text-[10px] text-[#808191] text-right font-['JetBrains_Mono']">
-                    — Source Document: ArXiv_Quantum_Consensus_Paper.pdf (Page 14)
-                  </p>
-                </div>
+                )}
 
-                <p>
-                  Furthermore, empirical testing across a 128-node simulated cluster showed a 2.4x decrease in energy consumption compared to Proof-of-Stake consensus mechanisms
-                  <button 
-                    onClick={() => onNavigate('citations')}
-                    className="inline-flex items-center px-1.5 py-0.5 mx-1 rounded bg-[#E0E0FF] hover:bg-[#004AC1] hover:text-white text-[#004AC1] font-extrabold text-[11px] font-['JetBrains_Mono'] transition-all shadow-sm cursor-pointer"
-                    title="Source: Market_Infrastructure_Q4.pdf Page 8"
-                  >
-                    [2]
-                  </button>.
-                  The quantum no-cloning theorem provides intrinsic mathematical guarantees against chain reorganization attacks, rendering standard 51% attacks impossible without physically breaking quantum coherence
-                  <button 
-                    onClick={() => onNavigate('citations')}
-                    className="inline-flex items-center px-1.5 py-0.5 mx-1 rounded bg-[#E0E0FF] hover:bg-[#004AC1] hover:text-white text-[#004AC1] font-extrabold text-[11px] font-['JetBrains_Mono'] transition-all shadow-sm cursor-pointer"
-                    title="Source: Cryptographic_Foundations.docx Page 2"
-                  >
-                    [3]
-                  </button>.
-                </p>
-
+                {/* Additional Core Findings */}
+                {activeResult.coreFindings.slice(1).map((cf, idx) => (
+                  <div key={idx} className="p-4 rounded-xl bg-blue-50/40 border border-blue-100 flex items-start gap-3">
+                    <span className="w-5 h-5 rounded-full bg-[#004AC1] text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                      {idx + 2}
+                    </span>
+                    <div className="text-xs space-y-1">
+                      <p className="text-[#191B23] font-medium leading-relaxed">
+                        {cf.finding}
+                      </p>
+                      <p className="text-[10px] text-[#004AC1] font-bold">
+                        Grounded in {cf.sourceTitle} • {cf.page}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
 
             {/* Metadata Footer */}
             <div className="pt-6 border-t border-[#E0E0FF] flex flex-wrap items-center justify-between text-xs text-[#808191] gap-4">
               <div className="flex items-center gap-4">
-                <span>⏱ 12s Synthesis</span>
+                <span>⏱ Real-time RAG Synthesis</span>
                 <span>•</span>
-                <span>📄 2,400 Pages Scanned</span>
+                <span>📄 {activeResult.totalChunksExamined} Semantic Chunks Scanned</span>
                 <span>•</span>
-                <span>🎯 3 Citations</span>
+                <span>🎯 {activeResult.citations.length} Grounded Citations</span>
               </div>
 
               <div className="flex items-center gap-2">
                 <button 
                   onClick={() => onNavigate('citations')}
-                  className="text-[#004AC1] font-bold hover:underline flex items-center gap-1"
+                  className="text-[#004AC1] font-bold hover:underline flex items-center gap-1 cursor-pointer"
                 >
                   <span>Open Interactive Citation Explorer</span>
                   <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
@@ -346,23 +304,25 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ onNavigate }) => {
               
               <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-1">
                 <span className="text-[10px] font-bold text-emerald-800 uppercase font-['JetBrains_Mono']">
-                  Used Sources (3)
+                  Used Sources ({completeSources.length})
                 </span>
-                <p className="font-bold text-emerald-950">ArXiv_Quantum, Market_Q4, Cryptographic_Docx</p>
+                <p className="font-bold text-emerald-950 truncate">
+                  {completeSources.map((s) => s.name).join(', ') || 'No sources active'}
+                </p>
               </div>
 
               <div className="p-3.5 rounded-2xl bg-blue-50 border border-blue-200 space-y-1">
                 <span className="text-[10px] font-bold text-blue-800 uppercase font-['JetBrains_Mono']">
-                  Unused Sources (1)
+                  Grounded Chunks
                 </span>
-                <p className="font-bold text-blue-950">Research_Notes_Final.txt (Low similarity)</p>
+                <p className="font-bold text-blue-950">{activeResult.totalChunksExamined} Indexed Chunks</p>
               </div>
 
               <div className="p-3.5 rounded-2xl bg-purple-50 border border-purple-200 space-y-1">
                 <span className="text-[10px] font-bold text-purple-800 uppercase font-['JetBrains_Mono']">
-                  Missing Info Detection
+                  Anti-Hallucination
                 </span>
-                <p className="font-bold text-purple-950">Zero Hallucinations Guarantee Active</p>
+                <p className="font-bold text-purple-950">Strict Citation Validation Active</p>
               </div>
 
             </div>
@@ -377,20 +337,34 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ onNavigate }) => {
           <div className="p-5 rounded-3xl bg-white border border-[#E0E0FF] shadow-md space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-bold text-[#191B23] uppercase tracking-wider font-['JetBrains_Mono']">
-                Visual Abstract
+                Neural Citation Graph
               </h3>
-              <span className="text-[10px] text-[#004AC1] font-bold">AI Generated Map</span>
+              <span className="text-[10px] text-[#004AC1] font-bold">Topological Mesh</span>
             </div>
 
-            <div className="rounded-2xl overflow-hidden border border-[#E0E0FF] relative group">
-              <img 
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAwjPDxOdFz1FwmivBbZ8jZwCTazsmq1pyfmU5ELFynM4FqQ6gV_lwGpIEaX7dW9Cys6MCLc982R7gpml9suPUHUsH08UIQIv2go93lDs110GG9Kmfs80b7pa2bgN-Mfsol_4LB4u3Z2ld6n9JbE-LhZ8fn-XV_zu_G0mutPb1-eDlLKfjDVPr008fcs7O1pZQSs6M96pDMTCEr7cHAi4w217ykdehFDsoR6J_adbYd5FprmKxYSaC-" 
-                alt="Quantum Entanglement Visual Abstract" 
-                className="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-500"
-                referrerPolicy="no-referrer"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-3 text-white text-[11px] font-medium">
-                Figure 1.1: Quantum State Superposition in Consensus Topology
+            <div className="rounded-2xl overflow-hidden border border-[#E0E0FF] bg-gradient-to-br from-[#0F172A] to-[#1E1B4B] p-4 text-white relative">
+              <svg className="w-full h-36" viewBox="0 0 300 140" fill="none">
+                <circle cx="150" cy="70" r="28" fill="#004AC1" fillOpacity="0.4" stroke="#38BDF8" strokeWidth="2" />
+                <text x="150" y="74" textAnchor="middle" fill="#FFFFFF" fontSize="9" fontWeight="bold">QUERY</text>
+                
+                <line x1="150" y1="70" x2="60" y2="35" stroke="#60A5FA" strokeWidth="1.5" strokeDasharray="3 3" />
+                <circle cx="60" cy="35" r="18" fill="#1E293B" stroke="#60A5FA" strokeWidth="1.5" />
+                <text x="60" y="38" textAnchor="middle" fill="#93C5FD" fontSize="8" fontWeight="bold">DOC 1</text>
+
+                <line x1="150" y1="70" x2="240" y2="40" stroke="#818CF8" strokeWidth="1.5" strokeDasharray="3 3" />
+                <circle cx="240" cy="40" r="18" fill="#1E293B" stroke="#818CF8" strokeWidth="1.5" />
+                <text x="240" y="43" textAnchor="middle" fill="#C7D2FE" fontSize="8" fontWeight="bold">DOC 2</text>
+
+                <line x1="150" y1="70" x2="80" y2="110" stroke="#34D399" strokeWidth="1.5" strokeDasharray="3 3" />
+                <circle cx="80" cy="110" r="16" fill="#1E293B" stroke="#34D399" strokeWidth="1.5" />
+                <text x="80" y="113" textAnchor="middle" fill="#A7F3D0" fontSize="8" fontWeight="bold">DOC 3</text>
+
+                <line x1="150" y1="70" x2="225" y2="105" stroke="#F472B6" strokeWidth="1.5" strokeDasharray="3 3" />
+                <circle cx="225" cy="105" r="16" fill="#1E293B" stroke="#F472B6" strokeWidth="1.5" />
+                <text x="225" y="108" textAnchor="middle" fill="#FBCFE8" fontSize="8" fontWeight="bold">DOC 4</text>
+              </svg>
+              <div className="text-[10px] text-slate-300 text-center font-['JetBrains_Mono']">
+                Semantic Grounding Map • {completeSources.length} Active Node Clusters
               </div>
             </div>
           </div>
@@ -403,36 +377,34 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ onNavigate }) => {
               </h3>
               <button 
                 onClick={() => onNavigate('library')}
-                className="text-[11px] text-[#004AC1] font-bold hover:underline"
+                className="text-[11px] text-[#004AC1] font-bold hover:underline cursor-pointer"
               >
                 View All
               </button>
             </div>
 
             <div className="space-y-3">
-              {[
-                { num: 1, title: 'Quantum_Consensus_Paper.pdf', score: '98.2%', pages: '42 Pages' },
-                { num: 2, title: 'Market_Infrastructure_Q4.pdf', score: '94.1%', pages: '18 Pages' },
-                { num: 3, title: 'Cryptographic_Foundations.docx', score: '91.5%', pages: '12 Pages' },
-              ].map((src) => (
+              {completeSources.map((src, idx) => (
                 <div 
-                  key={src.num}
+                  key={src.id}
                   onClick={() => onNavigate('citations')}
                   className="p-3 rounded-2xl bg-[#FAF8FF] border border-[#E5E2FF] hover:border-[#004AC1] cursor-pointer transition-all flex items-center justify-between group"
                 >
                   <div className="flex items-center gap-2.5 overflow-hidden">
                     <span className="w-6 h-6 rounded-lg bg-[#004AC1] text-white text-[10px] font-bold flex items-center justify-center shrink-0">
-                      [{src.num}]
+                      [{idx + 1}]
                     </span>
                     <div className="truncate">
                       <p className="text-xs font-bold text-[#191B23] truncate group-hover:text-[#004AC1] transition-colors">
-                        {src.title}
+                        {src.name}
                       </p>
-                      <p className="text-[10px] text-[#808191]">{src.pages}</p>
+                      <p className="text-[10px] text-[#808191]">
+                        {src.chunks ? `${src.chunks.length} Chunks` : src.size}
+                      </p>
                     </div>
                   </div>
                   <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold shrink-0">
-                    {src.score} Match
+                    Active
                   </span>
                 </div>
               ))}

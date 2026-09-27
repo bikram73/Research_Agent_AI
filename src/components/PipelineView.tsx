@@ -1,16 +1,21 @@
 import React from 'react';
 import { NavView, PipelineStep } from '../types';
+import { useResearch } from '../context/ResearchContext';
 
 interface PipelineViewProps {
   onNavigate: (view: NavView) => void;
 }
 
 export const PipelineView: React.FC<PipelineViewProps> = ({ onNavigate }) => {
+  const { sources, activeResult, currentQuery } = useResearch();
+
+  const totalChunks = sources.reduce((acc, s) => acc + (s.chunks?.length || 1), 0);
+
   const steps: PipelineStep[] = [
     {
       id: 1,
       name: '1. Ingestion',
-      description: 'Ingesting raw PDF, DOCX, TXT documents & ArXiv URLs',
+      description: `Ingested ${sources.length} document(s) & URLs into secure sandbox memory`,
       icon: 'upload_file',
       colorClass: 'bg-blue-50 text-[#004AC1] border-blue-200',
       status: 'COMPLETE',
@@ -18,7 +23,7 @@ export const PipelineView: React.FC<PipelineViewProps> = ({ onNavigate }) => {
     {
       id: 2,
       name: '2. OCR & Parsing',
-      description: 'Bounding box geometry mapping & text layer extraction',
+      description: 'Extracted plain text layers and structural page coordinates across all files',
       icon: 'document_scanner',
       colorClass: 'bg-indigo-50 text-indigo-700 border-indigo-200',
       status: 'COMPLETE',
@@ -26,17 +31,16 @@ export const PipelineView: React.FC<PipelineViewProps> = ({ onNavigate }) => {
     {
       id: 3,
       name: '3. Semantic Chunking',
-      description: 'Splitting documents into 512-token contextual windows with 20% overlap',
+      description: `Generated ${totalChunks} contextual paragraph chunks with character boundary tracking`,
       icon: 'grid_view',
       colorClass: 'bg-purple-50 text-purple-700 border-purple-200',
-      status: 'IN PROGRESS (84%)',
-      progress: 84,
-      active: true,
+      status: 'COMPLETE (100%)',
+      progress: 100,
     },
     {
       id: 4,
       name: '4. Vector Embedding',
-      description: 'Converting text chunks into high-dimensional dense vector space',
+      description: 'Indexed high-dimensional text token representations for semantic search',
       icon: 'scatter_plot',
       colorClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
       status: 'READY',
@@ -44,18 +48,19 @@ export const PipelineView: React.FC<PipelineViewProps> = ({ onNavigate }) => {
     {
       id: 5,
       name: '5. Neural Similarity Search',
-      description: 'Cosine similarity ranking against query embeddings (Top score: 0.982)',
+      description: `Ranked top evidence against query with top similarity score: ${activeResult.confidenceScore}%`,
       icon: 'saved_search',
       colorClass: 'bg-amber-50 text-amber-700 border-amber-200',
-      status: 'READY',
+      status: 'MATCHED',
     },
     {
       id: 6,
-      name: '6. Gemini 1.5 Pro Grounding',
-      description: 'Synthesizing response with strict citation overlay constraints',
+      name: '6. Grounded Synthesis',
+      description: `Synthesized findings with ${activeResult.citations.length} verified citation references`,
       icon: 'auto_awesome',
       colorClass: 'bg-gradient-to-r from-[#004AC1] to-[#8343f4] text-white border-transparent',
       status: 'ACTIVE ENGINE',
+      active: true,
     },
   ];
 

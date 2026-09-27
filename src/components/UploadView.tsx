@@ -1,121 +1,23 @@
 import React, { useState, useRef } from 'react';
-import { NavView, SourceFile } from '../types';
+import { NavView } from '../types';
+import { useResearch } from '../context/ResearchContext';
 
 interface UploadViewProps {
   onNavigate: (view: NavView) => void;
 }
 
 export const UploadView: React.FC<UploadViewProps> = ({ onNavigate }) => {
-  const [sources, setSources] = useState<SourceFile[]>([
-    {
-      id: '1',
-      name: 'Q4_Market_Analysis.pdf',
-      size: '4.2 MB',
-      type: 'pdf',
-      status: 'complete',
-      statusText: '100% Embedded',
-      date: 'Just now',
-    },
-    {
-      id: '2',
-      name: 'Competitive_Landscape.docx',
-      size: '1.8 MB',
-      type: 'docx',
-      status: 'processing',
-      progress: 65,
-      statusText: 'Chunking & Vectorizing (65%)',
-      date: 'Uploading',
-    },
-    {
-      id: '3',
-      name: 'Research_Notes_Final.txt',
-      size: '450 KB',
-      type: 'txt',
-      status: 'waiting',
-      statusText: 'In Queue',
-      date: 'Pending',
-    },
-  ]);
+  const { sources, uploadFiles, addWebSource, removeSource, uploadStatusMessage, isProcessing } = useResearch();
 
   const [urlInput, setUrlInput] = useState('');
   const [isAddingUrl, setIsAddingUrl] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const processUploadedFiles = (files: File[]) => {
-    if (files.length === 0) return;
-
-    const newFiles: SourceFile[] = files.map((file, idx) => {
-      const extension = file.name.split('.').pop()?.toLowerCase() || '';
-      let fileType: 'pdf' | 'docx' | 'txt' | 'csv' | 'web' = 'txt';
-      if (extension === 'pdf') fileType = 'pdf';
-      else if (['doc', 'docx'].includes(extension)) fileType = 'docx';
-      else if (['csv', 'xls', 'xlsx'].includes(extension)) fileType = 'csv';
-
-      const formattedSize = file.size > 1024 * 1024 
-        ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` 
-        : `${Math.max(1, Math.round(file.size / 1024))} KB`;
-
-      return {
-        id: `${Date.now()}-${idx}-${Math.random().toString(36).substr(2, 4)}`,
-        name: file.name,
-        size: formattedSize,
-        type: fileType,
-        status: 'processing',
-        progress: 15,
-        statusText: 'Vectorizing document (15%)',
-        date: 'Just now',
-      };
-    });
-
-    setSources((prev) => [...newFiles, ...prev]);
-    setUploadSuccess(`Successfully added ${files.length} document${files.length > 1 ? 's' : ''} to queue`);
-
-    setTimeout(() => {
-      setUploadSuccess(null);
-    }, 4000);
-
-    // Simulate progress animation for new files
-    newFiles.forEach((f) => {
-      let currentProg = 15;
-      const interval = setInterval(() => {
-        currentProg += 25;
-        if (currentProg >= 100) {
-          clearInterval(interval);
-          setSources((prev) =>
-            prev.map((item) =>
-              item.id === f.id
-                ? {
-                    ...item,
-                    status: 'complete',
-                    progress: 100,
-                    statusText: '100% Embedded & Grounded',
-                  }
-                : item
-            )
-          );
-        } else {
-          setSources((prev) =>
-            prev.map((item) =>
-              item.id === f.id
-                ? {
-                    ...item,
-                    progress: currentProg,
-                    statusText: `Chunking & Vectorizing (${currentProg}%)`,
-                  }
-                : item
-            )
-          );
-        }
-      }, 800);
-    });
-  };
-
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      processUploadedFiles(Array.from(e.target.files));
+      uploadFiles(Array.from(e.target.files));
       e.target.value = '';
     }
   };
@@ -138,47 +40,15 @@ export const UploadView: React.FC<UploadViewProps> = ({ onNavigate }) => {
     setIsDragging(false);
 
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      processUploadedFiles(Array.from(e.dataTransfer.files));
+      uploadFiles(Array.from(e.dataTransfer.files));
     }
   };
 
   const handleAddUrl = () => {
     if (!urlInput.trim()) return;
-    const newFile: SourceFile = {
-      id: Date.now().toString(),
-      name: urlInput.replace(/^https?:\/\//, '').slice(0, 32) + '...',
-      size: 'Web Article',
-      type: 'web',
-      status: 'processing',
-      progress: 30,
-      statusText: 'Scraping & Embedding...',
-      url: urlInput,
-      date: 'Just now',
-    };
-    setSources([newFile, ...sources]);
+    addWebSource(urlInput.trim());
     setUrlInput('');
     setIsAddingUrl(false);
-    setUploadSuccess('Web link added to indexing pipeline!');
-    setTimeout(() => setUploadSuccess(null), 3000);
-
-    setTimeout(() => {
-      setSources((prev) =>
-        prev.map((item) =>
-          item.id === newFile.id
-            ? {
-                ...item,
-                status: 'complete',
-                progress: 100,
-                statusText: '100% Scraped & Grounded',
-              }
-            : item
-        )
-      );
-    }, 2000);
-  };
-
-  const handleRemoveSource = (id: string) => {
-    setSources((prev) => prev.filter((s) => s.id !== id));
   };
 
   return (
@@ -189,7 +59,7 @@ export const UploadView: React.FC<UploadViewProps> = ({ onNavigate }) => {
         ref={fileInputRef}
         type="file"
         multiple
-        accept=".pdf,.docx,.doc,.txt,.csv,.xls,.xlsx"
+        accept=".pdf,.docx,.doc,.txt,.csv,.xls,.xlsx,.md,.json"
         className="hidden"
         onChange={handleFileInputChange}
       />
@@ -227,15 +97,12 @@ export const UploadView: React.FC<UploadViewProps> = ({ onNavigate }) => {
         </div>
       </div>
 
-      {uploadSuccess && (
+      {uploadStatusMessage && (
         <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center justify-between shadow-sm animate-fadeIn">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-[18px] text-emerald-600">check_circle</span>
-            <span>{uploadSuccess}</span>
+            <span>{uploadStatusMessage}</span>
           </div>
-          <button onClick={() => setUploadSuccess(null)} className="text-emerald-700 hover:text-emerald-900">
-            <span className="material-symbols-outlined text-[16px]">close</span>
-          </button>
         </div>
       )}
 
@@ -376,7 +243,7 @@ export const UploadView: React.FC<UploadViewProps> = ({ onNavigate }) => {
                       
                       <button
                         type="button"
-                        onClick={() => handleRemoveSource(file.id)}
+                        onClick={() => removeSource(file.id)}
                         className="p-1 rounded-lg hover:bg-red-50 text-[#808191] hover:text-red-600 transition-colors"
                         title="Remove source"
                       >

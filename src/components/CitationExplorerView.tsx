@@ -1,55 +1,33 @@
 import React, { useState } from 'react';
-import { NavView, CitationData } from '../types';
+import { NavView } from '../types';
+import { useResearch } from '../context/ResearchContext';
 
 interface CitationExplorerProps {
   onNavigate: (view: NavView) => void;
 }
 
 export const CitationExplorerView: React.FC<CitationExplorerProps> = ({ onNavigate }) => {
-  const citations: CitationData[] = [
+  const { activeResult } = useResearch();
+
+  const citations = activeResult.citations.length > 0 ? activeResult.citations : [
     {
-      id: '1',
+      id: 'default-1',
       number: 1,
-      total: 12,
-      sourceDocument: 'ArXiv_Quantum_Consensus_Paper.pdf',
-      sourceTitle: 'Quantum Entanglement Protocols for Byzantine Fault Tolerant Architectures',
-      author: 'Dr. Elena Rostova, Prof. Marcus Vance',
-      publication: 'IEEE Transactions on Quantum Systems',
-      published: 'October 2024',
-      doi: '10.1109/TQS.2024.10482',
+      total: 1,
+      sourceDocument: 'Upload Document to View Citations',
+      sourceTitle: 'Citation Index Ready',
+      author: 'Research Engine',
+      publication: 'AI Grounding Pipeline',
+      published: new Date().toLocaleDateString(),
+      doi: '10.ais/index/1',
       similarityScore: 98.2,
-      extractedParagraph: 'By deploying entangled photon states across distributed consensus nodes, validator nodes achieve instantaneous state synchronization without requiring standard Byzantine agreement network round-trip message passes.',
-    },
-    {
-      id: '2',
-      number: 2,
-      total: 12,
-      sourceDocument: 'Market_Infrastructure_Q4.pdf',
-      sourceTitle: 'Q4 Enterprise Blockchain & Quantum Infrastructure Benchmarks',
-      author: 'Soren Lindqvist, Amara Okafor',
-      publication: 'Global Tech Intelligence Quarterly',
-      published: 'November 2024',
-      doi: '10.1016/j.gtiq.2024.0881',
-      similarityScore: 94.1,
-      extractedParagraph: 'Across a 128-node benchmark cluster, quantum state superposition reduced energy overhead by 2.4x compared to legacy Proof-of-Stake validator clusters.',
-    },
-    {
-      id: '3',
-      number: 3,
-      total: 12,
-      sourceDocument: 'Cryptographic_Foundations.docx',
-      sourceTitle: 'No-Cloning Safeguards in Quantum Ledger Systems',
-      author: 'Dr. Akira Tanaka',
-      publication: 'Journal of Applied Cryptography',
-      published: 'August 2024',
-      doi: '10.1007/s00145-024-0982',
-      similarityScore: 91.5,
-      extractedParagraph: 'The no-cloning theorem guarantees that adversary nodes cannot duplicate quantum state tokens, eliminating double-spend vulnerabilities at the physical layer.',
+      extractedParagraph: 'Upload your documents in the Import Sources view to see verified citation snippets and page coordinates mapped here.',
     },
   ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const currentCitation = citations[currentIndex];
+  const safeIndex = Math.min(currentIndex, citations.length - 1);
+  const currentCitation = citations[safeIndex >= 0 ? safeIndex : 0];
   const [approvedStatus, setApprovedStatus] = useState<'none' | 'approved' | 'flagged'>('none');
 
   const handleNext = () => {
