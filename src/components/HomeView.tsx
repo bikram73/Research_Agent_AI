@@ -417,52 +417,6 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
         </div>
       </section>
 
-      {/* Full Footer */}
-      <footer className="pt-12 border-t border-[#E0E0FF] text-xs text-[#5C5D69] space-y-8 font-['Work_Sans']">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-          
-          <div className="md:col-span-8 space-y-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-[#004AC1] text-white flex items-center justify-center p-1 shadow-sm">
-                <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M2 6C2 4.89543 2.89543 4 4 4H10C11.1046 4 12 4.89543 12 6V18C12 16.8954 11.1046 16 10 16H4C2.89543 16 2 16.8954 2 18V6Z" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M22 6C22 4.89543 21.1046 4 20 4H14C12.8954 4 12 4.89543 12 6V18C12 16.8954 12.8954 16 14 16H20C21.1046 16 22 16.8954 22 18V6Z" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
-                  <circle cx="15.5" cy="10.5" r="3" fill="#004AC1" stroke="white" strokeWidth="1.5"/>
-                  <path d="M17.8 12.8L20.2 15.2" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-                </svg>
-              </div>
-              <span className="text-lg font-extrabold text-[#191B23] font-['Manrope']">Research Agent AI</span>
-            </div>
-            <p className="text-xs leading-relaxed text-[#5C5D69] max-w-md">
-              The world's most trusted AI assistant for academic research and professional data synthesis. Built for rigor, not just speed.
-            </p>
-          </div>
-
-          <div className="md:col-span-4 space-y-3">
-            <p className="font-bold text-[#191B23] uppercase tracking-wider font-['JetBrains_Mono'] text-[11px]">
-              Workspace Navigation
-            </p>
-            <ul className="space-y-2">
-              <li><button onClick={() => onNavigate('home')} className="hover:text-[#004AC1] cursor-pointer">Overview</button></li>
-              <li><button onClick={() => onNavigate('upload')} className="hover:text-[#004AC1] cursor-pointer">Import Engine</button></li>
-              <li><button onClick={() => onNavigate('investigate')} className="hover:text-[#004AC1] cursor-pointer">Workspace</button></li>
-              <li><button onClick={() => onNavigate('pipeline')} className="hover:text-[#004AC1] cursor-pointer">Neural Pipeline</button></li>
-              <li><button onClick={() => onNavigate('citations')} className="hover:text-[#004AC1] cursor-pointer">Citation Explorer</button></li>
-              <li><button onClick={() => onNavigate('about')} className="hover:text-[#004AC1] cursor-pointer">Architecture & QA</button></li>
-            </ul>
-          </div>
-
-        </div>
-
-        <div className="pt-6 border-t border-[#E0E0FF] flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-[#808191]">
-          <p>© 2026 Research Agent AI / ScholarAI Research Inc. All rights reserved.</p>
-          <div className="flex items-center gap-4">
-            <button onClick={() => onNavigate('about')} className="hover:text-[#004AC1] cursor-pointer">Documentation</button>
-            <button onClick={() => onNavigate('pipeline')} className="hover:text-[#004AC1] cursor-pointer">Pipeline Specs</button>
-          </div>
-        </div>
-      </footer>
-
     </div>
   );
 };

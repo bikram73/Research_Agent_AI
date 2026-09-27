@@ -10,6 +10,7 @@ import { CitationExplorerView } from './components/CitationExplorerView';
 import { PipelineView } from './components/PipelineView';
 import { LibraryView } from './components/LibraryView';
 import { AboutView } from './components/AboutView';
+import { Footer } from './components/Footer';
 import { ResearchProvider } from './context/ResearchContext';
 
 export default function App() {
@@ -46,9 +47,14 @@ export default function App() {
 
         {/* Main Container */}
         <div className="flex-1 flex max-w-7xl w-full mx-auto">
-          <main className="flex-1 w-full min-w-0 p-4 sm:p-6 lg:p-8 pb-24 md:pb-12 focus:outline-none transition-all">
+          <main className="flex-1 w-full min-w-0 p-4 sm:p-6 lg:p-8 pb-16 md:pb-8 focus:outline-none transition-all">
             {renderActiveView()}
           </main>
+        </div>
+
+        {/* Global Compact Footer */}
+        <div className="pb-16 md:pb-0">
+          <Footer currentView={currentView} onNavigate={setCurrentView} />
         </div>
 
         {/* Mobile Bottom Navigation */}
