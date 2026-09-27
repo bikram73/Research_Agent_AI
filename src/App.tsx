@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { NavView } from './types';
 import { Navbar } from './components/Navbar';
-import { Sidebar, BottomBar } from './components/Sidebar';
+import { BottomBar } from './components/Sidebar';
 import { HomeView } from './components/HomeView';
 import { UploadView } from './components/UploadView';
 import { InvestigateView } from './components/InvestigateView';
@@ -46,7 +46,6 @@ export default function App() {
 
         {/* Main Container */}
         <div className="flex-1 flex max-w-7xl w-full mx-auto">
-          <Sidebar currentView={currentView} onNavigate={setCurrentView} />
           <main className="flex-1 w-full min-w-0 p-4 sm:p-6 lg:p-8 pb-24 md:pb-12 focus:outline-none transition-all">
             {renderActiveView()}
           </main>
