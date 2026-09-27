@@ -346,7 +346,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
       <footer className="pt-12 border-t border-[#E0E0FF] text-xs text-[#5C5D69] space-y-8 font-['Work_Sans']">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
           
-          <div className="md:col-span-6 space-y-3">
+          <div className="md:col-span-8 space-y-3">
             <div className="flex items-center gap-2.5">
               <div className="w-7 h-7 rounded-lg bg-[#004AC1] text-white flex items-center justify-center p-1 shadow-sm">
                 <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -363,7 +363,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
             </p>
           </div>
 
-          <div className="md:col-span-3 space-y-3">
+          <div className="md:col-span-4 space-y-3">
             <p className="font-bold text-[#191B23] uppercase tracking-wider font-['JetBrains_Mono'] text-[11px]">
               Product
             </p>
@@ -375,29 +375,10 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
             </ul>
           </div>
 
-          <div className="md:col-span-3 space-y-3">
-            <p className="font-bold text-[#191B23] uppercase tracking-wider font-['JetBrains_Mono'] text-[11px]">
-              Company
-            </p>
-            <ul className="space-y-2">
-              <li><button onClick={() => onNavigate('about')} className="hover:text-[#004AC1]">About System</button></li>
-              <li><a href="#" className="hover:text-[#004AC1]">Careers</a></li>
-              <li><a href="#" className="hover:text-[#004AC1]">Research Charter</a></li>
-              <li><a href="#" className="hover:text-[#004AC1]">Privacy Policy</a></li>
-            </ul>
-          </div>
-
         </div>
 
         <div className="pt-6 border-t border-[#E0E0FF] flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-[#808191]">
           <p>© 2026 Research Agent AI / ScholarAI Research Inc. All rights reserved.</p>
-          <div className="flex items-center gap-4">
-            <a href="#" className="hover:underline">Privacy Policy</a>
-            <span>•</span>
-            <a href="#" className="hover:underline">Terms of Service</a>
-            <span>•</span>
-            <a href="#" className="hover:underline">Ethical AI Charter</a>
-          </div>
         </div>
       </footer>
 
