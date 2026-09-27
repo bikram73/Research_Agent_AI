@@ -69,7 +69,7 @@ export const CitationExplorerView: React.FC<CitationExplorerProps> = ({ onNaviga
               </h1>
             </div>
             <p className="text-xs text-[#5C5D69]">
-              Viewing verified text bounding coordinate inside original source manuscript.
+              Viewing verified text provenance and character offsets inside original source document.
             </p>
           </div>
         </div>
@@ -115,7 +115,7 @@ export const CitationExplorerView: React.FC<CitationExplorerProps> = ({ onNaviga
                 </span>
                 <span>{copiedQuote ? 'Copied Quote!' : 'Copy Quote'}</span>
               </button>
-              <span className="text-[10px] text-[#808191] font-['JetBrains_Mono']">Verified Coordinate</span>
+              <span className="text-[10px] text-[#808191] font-['JetBrains_Mono']">Verified Provenance</span>
             </div>
           </div>
 
@@ -141,7 +141,7 @@ export const CitationExplorerView: React.FC<CitationExplorerProps> = ({ onNaviga
             </div>
 
             <p className="text-[11px] text-[#808191]">
-              Document provenance verified. Exact coordinate alignment prevents hallucination and guarantees attribution.
+              Document provenance verified. Page-level references and character offset alignment guarantee attribution.
             </p>
           </div>
         </div>
@@ -179,7 +179,7 @@ export const CitationExplorerView: React.FC<CitationExplorerProps> = ({ onNaviga
               </div>
 
               <div>
-                <label className="text-[10px] font-bold text-[#808191] uppercase">Index ID & DOI Coordinate</label>
+                <label className="text-[10px] font-bold text-[#808191] uppercase">Index ID & Provenance Reference</label>
                 <p className="text-[#004AC1] font-mono text-[11px]">{currentCitation.publication} • DOI: {currentCitation.doi}</p>
               </div>
             </div>

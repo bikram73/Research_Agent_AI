@@ -23,7 +23,7 @@ export const PipelineView: React.FC<PipelineViewProps> = ({ onNavigate }) => {
     {
       id: 2,
       name: '2. OCR & Parsing',
-      description: 'Extracted plain text layers and structural page coordinates across all files',
+      description: 'Extracted plain text layers, structural page references, and character offsets across all files',
       icon: 'document_scanner',
       colorClass: 'bg-indigo-50 text-indigo-700 border-indigo-200',
       status: 'COMPLETE',

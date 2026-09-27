@@ -433,7 +433,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ onNavigate }) => {
               Extracted Ground Evidence Snippets ({evidenceSnippets.length})
             </h3>
           </div>
-          <span className="text-xs text-[#808191]">Click any card to inspect full passage coordinates</span>
+          <span className="text-xs text-[#808191]">Click any card to inspect full passage provenance and offsets</span>
         </div>
 
         {evidenceSnippets.length === 0 ? (

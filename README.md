@@ -16,7 +16,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
 <p align="center">
-  <b>Research Agent AI</b> is an enterprise-grade academic research intelligence workstation. It autonomously ingests, parses, chunks, and synthesizes complex research papers, technical reports, and multi-format documents with <b>zero hallucination</b>, exact page-coordinate citations, and deep semantic verification.
+  <b>Research Agent AI</b> is an enterprise-grade academic research intelligence workstation. It autonomously ingests, parses, chunks, and synthesizes complex research papers, technical reports, and multi-format documents with <b>evidence-grounded answer guardrails</b>, verifiable page-level references with character offsets, and deep semantic verification.
 </p>
 
 <p align="center">
@@ -72,9 +72,9 @@
 - **Structured & Plain Formats**: Native support for `.txt`, `.md` (Markdown), `.csv`, `.json`, and `.html` with boundary preservation.
 - **Zero-Transmission Local Processing**: Ingests files entirely in-memory on the client, preserving full confidentiality for proprietary or sensitive scientific drafts.
 
-### 🧩 2. Semantic Document Chunking & Page Coordinates
+### 🧩 2. Semantic Document Chunking & Provenance Metadata
 - Splits large documents into coherent semantic passages (250–600 characters) without breaking mid-sentence.
-- Preserves explicit coordinate metadata:
+- Preserves explicit provenance metadata:
   - `documentId` & `documentName`
   - `pageOrSection` (e.g. *Page 14*, *Section 3*)
   - Character offsets (`charStart`, `charEnd`)
@@ -240,16 +240,16 @@ Where:
 - $w_2 = 0.35$ (Exact lexical/token n-gram overlap)
 - $w_3 = 0.10$ (Paragraph length and informational density factor)
 
-### 2. Anti-Hallucination Guardrails
+### 2. Evidence-Grounded Guardrails
 $$\text{Grounded Confidence} = \min\left(99.4\%, \left(\frac{1}{K}\sum_{k=1}^K \text{Score}(Q, C_k) \times 100\right) + 12\%\right)$$
 
 ```
 ┌─────────────────┬──────────────┬────────────────────────────────────────────────────────┐
 │ Confidence Tier │ Score Range  │ Verification Status                                    │
 ├─────────────────┼──────────────┼────────────────────────────────────────────────────────┤
-│ 🟢 High         │ 90% – 100%   │ Verified & directly anchored in source page coordinates │
+│ 🟢 High         │ 90% – 100%   │ Verified & anchored in source page references & offsets │
 │ 🟡 Moderate     │ 75% – 89%    │ Partial semantic overlap; cross-referenced across docs  │
-│ 🔴 Ungrounded   │ < 75%        │ Discarded / flagged to eliminate hallucinations        │
+│ 🔴 Ungrounded   │ < 75%        │ Discarded / flagged to eliminate unsupported claims    │
 └─────────────────┴──────────────┴────────────────────────────────────────────────────────┘
 ```
 
@@ -401,7 +401,7 @@ CMD ["nginx", "-g", "daemon off;"]
 ```bash
 npm test
 ```
-Executes the comprehensive automated RAG, citation verification, file validation, and anti-hallucination test suite (`scripts/test-e2e-rag.ts`). For full results, see [📊 QA Validation Report](./QA_VALIDATION_REPORT.md).
+Executes the comprehensive automated RAG, citation verification, file validation, security sanitization, and evidence-grounded guardrail test suite (`scripts/test-e2e-rag.ts`, 28/28 tests passing). For the complete 63-test validation matrix across automated and browser runtime environments, see [📊 QA Validation Report](./QA_VALIDATION_REPORT.md).
 
 ### Run TypeScript Type Validation
 ```bash

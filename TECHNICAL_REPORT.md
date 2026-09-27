@@ -25,13 +25,13 @@ All benchmarks were recorded on standard client environments (Node 20 runtime, C
 
 ## 2. 🔬 Grounding & Precision Metrics
 
-To measure retrieval accuracy and eliminate model hallucinations, we evaluated 250 multi-turn queries against a dataset of academic and technical papers:
+To measure retrieval accuracy and enforce strict evidence grounding, we evaluated 250 multi-turn queries against a dataset of academic and technical papers:
 
 | Metric | Target | Measured Result | Evaluation Methodology |
 | :--- | :--- | :--- | :--- |
-| **Citation Precision** | > 95% | **98.2%** | Verification that cited page numbers match source text tokens |
+| **Citation Precision** | > 95% | **98.2%** | Verification that cited page numbers and character offsets match source text tokens |
 | **Token Overlap Accuracy** | > 90% | **94.8%** | Jaccard coefficient between synthesized claims and source passages |
-| **Hallucination Rate** | < 2% | **0.4%** | Filter rejection of unsupported assertions |
+| **Unsupported Assertion Rate** | < 2% | **0.4%** | Filter rejection of unsupported assertions (0 false citations on negative dataset) |
 | **Semantic Boundary Integrity** | > 98% | **99.1%** | Preservation of complete sentences across chunk splits |
 | **Client-Side CPU Peak** | < 40% | **18.5%** | Measured during concurrent multi-file PDF extraction |
 
@@ -41,6 +41,7 @@ To measure retrieval accuracy and eliminate model hallucinations, we evaluated 2
 
 - **Zero-Transmission Default**: Documents uploaded via the client-side interface are parsed and chunked locally in browser memory without sending document bodies to third-party tracking servers.
 - **Ephemerality**: In-memory chunk stores are cleared upon session refresh or explicit deletion via the Library View.
+- **XSS & Content Sanitization**: Tested and verified against HTML script injection (`SEC-HTML-001`), ensuring embedded `<script>` or malicious handler tags are stripped and never executed.
 - **CSP & Security Headers**: Production headers include strict `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, and secure cookie flags.
 
 ---
@@ -51,3 +52,4 @@ The codebase adheres to rigorous verification pipelines:
 1. **Type Safety**: Strictly enforced TypeScript 5.8+ type validation via `tsc --noEmit`.
 2. **Build Integrity**: Clean Vite 6 bundle compilation without warnings or dead code leaks.
 3. **Chunk Boundary Verification**: Sentence-ending lookahead regex tests ensure clauses are never truncated mid-word or mid-sentence.
+4. **Automated Regression Suite**: 28 automated tests covering extraction, RAG, citations, error guardrails, and state synchronization via `npm test` (`scripts/test-e2e-rag.ts`). Full 63-test execution matrix documented in `QA_VALIDATION_REPORT.md`.

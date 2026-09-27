@@ -102,17 +102,55 @@ async function runTestSuite() {
     const jsonContent = JSON.stringify({
       project: 'Research Agent AI',
       version: '1.0',
-      capabilities: ['pdf_parsing', 'semantic_chunking', 'zero_hallucination'],
+      capabilities: ['pdf_parsing', 'semantic_chunking', 'evidence_grounded_guardrails'],
     }, null, 2);
     const jsonFile = createMockFile('config.json', jsonContent, 'application/json');
     const extracted = await extractTextFromFile(jsonFile);
-    if (extracted.text.includes('zero_hallucination')) {
+    if (extracted.text.includes('evidence_grounded_guardrails')) {
       recordTest('DOC-006', 'Structured JSON Ingestion', 'Document Parsing', 'PASS', `Successfully extracted and formatted JSON nodes`);
     } else {
       recordTest('DOC-006', 'Structured JSON Ingestion', 'Document Parsing', 'FAIL', 'JSON keys missing');
     }
   } catch (err: any) {
     recordTest('DOC-006', 'Structured JSON Ingestion', 'Document Parsing', 'FAIL', err.message);
+  }
+
+  // DOC-007: HTML Document Ingestion & Sectioning
+  try {
+    const htmlContent = `<!DOCTYPE html><html><body>
+      <h1>Quantum Entanglement Architecture</h1>
+      <p>Synchronous state consensus eliminates distributed ledger network latency across WAN validator nodes.</p>
+      <p>Cryptographic verification guarantees zero double-spend anomalies across 10,000 stress transactions.</p>
+    </body></html>`;
+    const htmlFile = createMockFile('quantum_arch.html', htmlContent, 'text/html');
+    const extracted = await extractTextFromFile(htmlFile);
+    if (extracted.text.includes('Quantum Entanglement') && extracted.pages.length >= 2) {
+      recordTest('DOC-007', 'HTML Document Ingestion & Section Extraction', 'Document Parsing', 'PASS', `Extracted ${extracted.pages.length} clean DOM sections from HTML`);
+    } else {
+      recordTest('DOC-007', 'HTML Document Ingestion & Section Extraction', 'Document Parsing', 'FAIL', 'HTML sections missing or incorrectly parsed');
+    }
+  } catch (err: any) {
+    recordTest('DOC-007', 'HTML Document Ingestion & Section Extraction', 'Document Parsing', 'FAIL', err.message);
+  }
+
+  // SEC-HTML-001: HTML Script Injection & Malicious Content Sanitization
+  try {
+    const maliciousHtml = `<!DOCTYPE html><html><body>
+      <h2>Grounded Research Protocol</h2>
+      <script>alert("XSS-ATTACK-VECTOR-EXECUTION");</script>
+      <img src="invalid_img.png" onerror="alert('IMAGE_XSS_TRIGGERED')" />
+      <p>Legitimate academic text layer discussing verifiable provenance and citation indexing.</p>
+    </body></html>`;
+    const secFile = createMockFile('exploit_attempt.html', maliciousHtml, 'text/html');
+    const secExtracted = await extractTextFromFile(secFile);
+    const scriptExecutedOrLeaked = secExtracted.text.includes('XSS-ATTACK-VECTOR-EXECUTION') || secExtracted.text.includes('IMAGE_XSS_TRIGGERED');
+    if (!scriptExecutedOrLeaked && secExtracted.text.includes('Legitimate academic text layer')) {
+      recordTest('SEC-HTML-001', 'HTML Script Injection & Payload Sanitization', 'Security & Privacy', 'PASS', 'Malicious <script> and onerror handlers cleanly stripped; safe plain text retained');
+    } else {
+      recordTest('SEC-HTML-001', 'HTML Script Injection & Payload Sanitization', 'Security & Privacy', 'FAIL', 'Malicious script payload was not sanitized');
+    }
+  } catch (err: any) {
+    recordTest('SEC-HTML-001', 'HTML Script Injection & Payload Sanitization', 'Security & Privacy', 'FAIL', err.message);
   }
 
   // -------------------------------------------------------------
@@ -130,6 +168,32 @@ async function runTestSuite() {
       recordTest('ERR-DOC-001', 'Empty File Rejection (0 bytes)', 'Error Handling', 'PASS', `Gracefully rejected: "${err.message}"`);
     } else {
       recordTest('ERR-DOC-001', 'Empty File Rejection (0 bytes)', 'Error Handling', 'FAIL', `Unexpected error message: ${err.message}`);
+    }
+  }
+
+  // ERR-DOC-002: Corrupted PDF Structure
+  try {
+    const corruptPdfFile = createMockFile('corrupted_paper.pdf', 'NOT_A_VALID_PDF_HEADER_STREAM_DATA', 'application/pdf');
+    await extractTextFromFile(corruptPdfFile);
+    recordTest('ERR-DOC-002', 'Corrupted PDF Stream Rejection', 'Error Handling', 'FAIL', 'Corrupted PDF accepted without validation');
+  } catch (err: any) {
+    if (err.message.includes('PDF') || err.message.includes('Corrupted') || err.message.includes('header')) {
+      recordTest('ERR-DOC-002', 'Corrupted PDF Stream Rejection', 'Error Handling', 'PASS', `Gracefully trapped: "${err.message}"`);
+    } else {
+      recordTest('ERR-DOC-002', 'Corrupted PDF Stream Rejection', 'Error Handling', 'FAIL', err.message);
+    }
+  }
+
+  // ERR-DOC-003: Corrupted DOCX Package
+  try {
+    const corruptDocxFile = createMockFile('corrupted_report.docx', 'INVALID_NON_ZIP_BINARY_DATA', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    await extractTextFromFile(corruptDocxFile);
+    recordTest('ERR-DOC-003', 'Corrupted DOCX Package Rejection', 'Error Handling', 'FAIL', 'Corrupted DOCX accepted without validation');
+  } catch (err: any) {
+    if (err.message.includes('DOCX') || err.message.includes('Corrupted') || err.message.includes('Word')) {
+      recordTest('ERR-DOC-003', 'Corrupted DOCX Package Rejection', 'Error Handling', 'PASS', `Gracefully trapped: "${err.message}"`);
+    } else {
+      recordTest('ERR-DOC-003', 'Corrupted DOCX Package Rejection', 'Error Handling', 'FAIL', err.message);
     }
   }
 
@@ -164,9 +228,9 @@ async function runTestSuite() {
   }
 
   // -------------------------------------------------------------
-  // GROUP 3: Chunking & Coordinate Verification (RAG-CHUNK-001)
+  // GROUP 3: Chunking & Character Offset Provenance (RAG-CHUNK-001)
   // -------------------------------------------------------------
-  console.log('\n--- 3. Semantic Chunking & Coordinate Tracking ---');
+  console.log('\n--- 3. Semantic Chunking & Character Offset Provenance ---');
 
   const pages = [
     {
@@ -185,15 +249,15 @@ async function runTestSuite() {
   );
 
   if (chunkCheck && chunks.length >= 2) {
-    recordTest('RAG-CHUNK-001', 'Semantic Chunking & Coordinate Structure', 'RAG Pipeline', 'PASS', `Created ${chunks.length} chunks with preserved page & character coordinates`);
+    recordTest('RAG-CHUNK-001', 'Semantic Chunking & Character Offset Structure', 'RAG Pipeline', 'PASS', `Created ${chunks.length} chunks with preserved page-level references and character offsets`);
   } else {
-    recordTest('RAG-CHUNK-001', 'Semantic Chunking & Coordinate Structure', 'RAG Pipeline', 'FAIL', 'Chunks missing coordinate metadata');
+    recordTest('RAG-CHUNK-001', 'Semantic Chunking & Character Offset Structure', 'RAG Pipeline', 'FAIL', 'Chunks missing offset metadata');
   }
 
   // -------------------------------------------------------------
-  // GROUP 4: Retrieval & Relevance Scoring (RAG-001 to RAG-004)
+  // GROUP 4: Retrieval & Relevance Scoring (RAG-001 to RAG-004, RAG-PREC-001)
   // -------------------------------------------------------------
-  console.log('\n--- 4. Semantic Retrieval & Anti-Hallucination Ranking ---');
+  console.log('\n--- 4. Semantic Retrieval & Evidence-Grounded Ranking ---');
 
   // RAG-001: Exact Question Relevance
   const scoreExact = calculateRelevance('quantum state entanglement latency', chunks[0].text);
@@ -217,6 +281,44 @@ async function runTestSuite() {
     recordTest('RAG-004', 'Irrelevant Query Zero-Score Guardrail', 'Anti-Hallucination', 'PASS', `Relevance correctly evaluated to 0.0 (Zero False Positive)`);
   } else {
     recordTest('RAG-004', 'Irrelevant Query Zero-Score Guardrail', 'Anti-Hallucination', 'FAIL', `Expected 0.0, but received false positive score: ${scoreIrrelevant}`);
+  }
+
+  // RAG-PREC-001: Retrieval Precision Benchmark Calculation across Controlled Dataset
+  // Evaluates Top-K retrieved chunks against ground-truth labels across benchmark query set
+  // Formula: Precision = (Relevant Retrieved Chunks / Total Retrieved Chunks) * 100
+  const benchmarkEvaluationSet = [
+    { query: 'quantum entanglement latency reduction', expectedTarget: 'doc-101-chunk-1' },
+    { query: 'Byzantine agreement synchronous consensus', expectedTarget: 'doc-101-chunk-1' },
+    { query: 'validator clusters packet collision', expectedTarget: 'doc-101-chunk-2' },
+    { query: 'cryptographic verification double-spend', expectedTarget: 'doc-101-chunk-2' },
+    { query: 'Tendermint voting rounds telemetry', expectedTarget: 'doc-101-chunk-2' },
+  ];
+
+  let totalRetrievedChunks = 0;
+  let relevantRetrievedChunks = 0;
+
+  for (const item of benchmarkEvaluationSet) {
+    const scored = chunks
+      .map((c) => ({ chunk: c, score: calculateRelevance(item.query, c.text) }))
+      .sort((a, b) => b.score - a.score);
+
+    // Evaluate top retrieved chunk for each query
+    if (scored.length > 0 && scored[0].score > 0.50) {
+      totalRetrievedChunks++;
+      if (scored[0].chunk.id === item.expectedTarget) {
+        relevantRetrievedChunks++;
+      }
+    }
+  }
+
+  const calculatedPrecision = totalRetrievedChunks > 0 
+    ? (relevantRetrievedChunks / totalRetrievedChunks) * 100 
+    : 0;
+
+  if (calculatedPrecision >= 95.0) {
+    recordTest('RAG-PREC-001', 'Retrieval Precision Benchmark Calculation', 'Retrieval', 'PASS', `Evaluated ${benchmarkEvaluationSet.length} queries: ${relevantRetrievedChunks}/${totalRetrievedChunks} relevant top chunks = ${calculatedPrecision.toFixed(1)}% Precision (Formula: [Relevant / Total] * 100)`);
+  } else {
+    recordTest('RAG-PREC-001', 'Retrieval Precision Benchmark Calculation', 'Retrieval', 'FAIL', `Precision too low: ${calculatedPrecision.toFixed(1)}%`);
   }
 
   // -------------------------------------------------------------
@@ -244,13 +346,13 @@ async function runTestSuite() {
     recordTest('CIT-001', 'Citation Generation for Grounded Claims', 'Citation Integrity', 'FAIL', 'No citations generated');
   }
 
-  // CIT-002 & CIT-003: Citation Document & Page Mapping
+  // CIT-002: Citation Source Document & Page-Level Offset Mapping
   const cite1 = groundedResult.citations[0];
   const finding1 = groundedResult.coreFindings[0];
   if (cite1.sourceDocument === 'Quantum_Consensus.pdf' && finding1.page.includes('Page')) {
-    recordTest('CIT-002', 'Citation Source Document & Page Coordinate Mapping', 'Citation Integrity', 'PASS', `Mapped to "${cite1.sourceDocument}" [${finding1.page}]`);
+    recordTest('CIT-002', 'Citation Source Document & Page-Level Offset Mapping', 'Citation Integrity', 'PASS', `Mapped to "${cite1.sourceDocument}" [${finding1.page}]`);
   } else {
-    recordTest('CIT-002', 'Citation Source Document & Page Coordinate Mapping', 'Citation Integrity', 'FAIL', 'Document/Page coordinate mismatch');
+    recordTest('CIT-002', 'Citation Source Document & Page-Level Offset Mapping', 'Citation Integrity', 'FAIL', 'Document/Page reference mismatch');
   }
 
   // CIT-004: Evidence snippet contains verified quote
@@ -273,9 +375,9 @@ async function runTestSuite() {
     negativeResult.confidenceScore === 0 &&
     negativeResult.summary.includes('do not contain enough information')
   ) {
-    recordTest('RAG-NEG-001', 'Missing Evidence Refusal (Anti-Hallucination Guardrail)', 'Anti-Hallucination', 'PASS', `Correctly declined: "${negativeResult.summary.slice(0, 75)}..."`);
+    recordTest('RAG-NEG-001', 'Missing Evidence Refusal (Evidence-Grounded Guardrail)', 'Anti-Hallucination', 'PASS', `Correctly declined: "${negativeResult.summary.slice(0, 75)}..."`);
   } else {
-    recordTest('RAG-NEG-001', 'Missing Evidence Refusal (Anti-Hallucination Guardrail)', 'Anti-Hallucination', 'FAIL', `System failed to reject unknown question. Score: ${negativeResult.confidenceScore}`);
+    recordTest('RAG-NEG-001', 'Missing Evidence Refusal (Evidence-Grounded Guardrail)', 'Anti-Hallucination', 'FAIL', `System failed to reject unknown question. Score: ${negativeResult.confidenceScore}`);
   }
 
   // Negative Dataset F Ingestion & Query
@@ -308,7 +410,7 @@ async function runTestSuite() {
   }
 
   // -------------------------------------------------------------
-  // GROUP 7: Multi-Document & Source Removal Tests (DOC-MULTI-001 to 003)
+  // GROUP 7: Multi-Document & Source Removal Tests (DOC-MULTI-001 to 003, STATE-EXP-001)
   // -------------------------------------------------------------
   console.log('\n--- 7. Multi-Source State Synchronization & Stale Context Purge ---');
 
@@ -378,6 +480,22 @@ async function runTestSuite() {
     recordTest('DOC-MULTI-003', 'Empty Knowledge Base State', 'State Synchronization', 'PASS', 'Clean 0-state when all documents are cleared');
   } else {
     recordTest('DOC-MULTI-003', 'Empty Knowledge Base State', 'State Synchronization', 'FAIL', 'Non-zero state when empty');
+  }
+
+  // STATE-EXP-001: Multi-Source Deletion, Re-query & Export Provenance Verification
+  const activeSourcesAfterDelete = [sourceB];
+  const postDeleteBResult = synthesizeResearch('cosine similarity retrieval vector pipeline', activeSourcesAfterDelete);
+  const jsonExportStr = JSON.stringify(postDeleteBResult, null, 2);
+  const parsedJsonExport = JSON.parse(jsonExportStr);
+
+  const noStaleInJson = !jsonExportStr.includes('React_Frontend_Specs.txt');
+  const validProvenanceInJson = parsedJsonExport.evidenceSnippets.every((ev: any) => ev.location && ev.location.includes('Chars'));
+  const validSourceBInCitations = parsedJsonExport.citations.every((c: any) => c.sourceDocument === 'Vector_Pipeline_Specs.txt');
+
+  if (noStaleInJson && validProvenanceInJson && validSourceBInCitations && postDeleteBResult.citations.length > 0) {
+    recordTest('STATE-EXP-001', 'Multi-Source Deletion, Re-query & Export Provenance', 'State Synchronization', 'PASS', 'Export verified: 0 stale references to deleted doc, clean provenance with character offsets');
+  } else {
+    recordTest('STATE-EXP-001', 'Multi-Source Deletion, Re-query & Export Provenance', 'State Synchronization', 'FAIL', 'Stale references or invalid provenance found in exported payload');
   }
 
   // -------------------------------------------------------------

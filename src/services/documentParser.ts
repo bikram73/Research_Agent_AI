@@ -143,20 +143,44 @@ export async function extractTextFromFile(file: File): Promise<{ text: string; p
     }
   }
 
-  // 8. HTML Documents (DOC-007)
+  // 8. HTML Documents (DOC-007, SEC-HTML-001)
   if (['html', 'htm'].includes(extension)) {
     try {
       const rawHtml = await file.text();
-      const doc = new DOMParser().parseFromString(rawHtml, 'text/html');
-      const bodyText = doc.body?.textContent || '';
-      const paragraphs = (doc.body?.querySelectorAll('p, h1, h2, h3, h4, li, article, section') || []);
+      let bodyText = '';
       const pageList: { pageNumber: number; text: string }[] = [];
-      paragraphs.forEach((el, idx) => {
-        const t = el.textContent?.trim();
-        if (t && t.length > 15) {
-          pageList.push({ pageNumber: idx + 1, text: t });
+
+      if (typeof DOMParser !== 'undefined') {
+        const doc = new DOMParser().parseFromString(rawHtml, 'text/html');
+        // SEC-HTML-001: Strip scripts and styles to prevent execution or script text leak
+        doc.querySelectorAll('script, style, noscript, iframe').forEach((el) => el.remove());
+        bodyText = doc.body?.textContent || '';
+        const paragraphs = doc.body?.querySelectorAll('p, h1, h2, h3, h4, li, article, section') || [];
+        paragraphs.forEach((el, idx) => {
+          const t = el.textContent?.trim();
+          if (t && t.length > 15) {
+            pageList.push({ pageNumber: idx + 1, text: t });
+          }
+        });
+      } else {
+        // Safe Node.js / isomorphic fallback: strip script, style, and tag structures
+        const sanitized = rawHtml
+          .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+          .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+          .replace(/<noscript\b[^<]*(?:(?!<\/noscript>)<[^<]*)*<\/noscript>/gi, '');
+
+        const tagRegex = /<(?:p|h[1-6]|li|article|section)\b[^>]*>(.*?)<\/(?:p|h[1-6]|li|article|section)>/gi;
+        let match;
+        let pIndex = 1;
+        while ((match = tagRegex.exec(sanitized)) !== null) {
+          const clean = match[1].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+          if (clean.length > 15) {
+            pageList.push({ pageNumber: pIndex++, text: clean });
+          }
         }
-      });
+        bodyText = sanitized.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+      }
+
       return {
         text: bodyText.trim(),
         pages: pageList.length > 0 ? pageList : [{ pageNumber: 1, text: bodyText.trim() }],

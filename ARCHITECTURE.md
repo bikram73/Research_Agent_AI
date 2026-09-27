@@ -85,13 +85,13 @@ Chunks Inverted Index ──────────────► Vector Simil
 - **Token Overlap & Weighting**: Tokens from the query are extracted, normalized (lowercased, punctuation removed), and stemmed.
 - **Lexical Density & Scoring**:
   $$\text{Score}(Q, C) = 0.6 \cdot \text{CosineOverlap}(Q, C) + 0.3 \cdot \text{JaccardTokenMatch}(Q, C) + 0.1 \cdot \text{ContextRelevance}(C)$$
-- **Page Coordinate Indexing**: Chunks retain explicit page numbers and character offsets, enabling exact highlight rendering in Citation Explorer.
+- **Page-Level & Offset Provenance**: Chunks retain explicit page numbers and character offsets, enabling exact highlight rendering in Citation Explorer.
 
 ---
 
-## 3. 🛡️ Anti-Hallucination & Grounding Engine
+## 3. 🛡️ Evidence-Grounded Guardrail & Provenance Engine
 
-The platform enforces zero-hallucination discipline by binding every generated finding directly to an extracted document chunk:
+The platform enforces strict evidence grounding by binding every generated finding directly to an extracted document chunk:
 
 1. **Quote Verification**: Every claim is cross-referenced against the chunk corpus to ensure substring or semantic alignment $> 85\%$.
 2. **Confidence Computation**:
