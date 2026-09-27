@@ -116,7 +116,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate }) => {
           {/* Active Model Indicator */}
           <div className="hidden xl:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>Gemini 1.5 Pro Neural RAG</span>
+            <span>Neural RAG Engine</span>
           </div>
 
           {/* Primary Action Button */}

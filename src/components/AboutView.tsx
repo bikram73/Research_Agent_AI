@@ -39,7 +39,7 @@ Question:
   const faqs = [
     {
       q: 'How does Research Agent AI avoid hallucinations?',
-      a: 'The application employs strict Retrieval-Augmented Generation (RAG). Before asking Gemini to answer, it extracts relevant chunks from your uploaded documents, computes cosine similarity scores, and injects only top-ranked chunks into the prompt context. The system is instructed to answer strictly using provided context and explicitly declare when evidence is missing.'
+      a: 'The application employs strict Retrieval-Augmented Generation (RAG). Before synthesizing an answer, it extracts relevant chunks from your uploaded documents, computes cosine similarity scores, and injects only top-ranked chunks into the prompt context. The system is instructed to answer strictly using provided context and explicitly declare when evidence is missing.'
     },
     {
       q: 'Does this app store my documents in a database?',
@@ -55,7 +55,7 @@ Question:
     },
     {
       q: 'How is the confidence score calculated?',
-      a: 'The confidence score (e.g., 92%) is evaluated by taking the weighted average cosine similarity score of the top retrieved text chunks along with Gemini context verification metrics.'
+      a: 'The confidence score (e.g., 92%) is evaluated by taking the weighted average cosine similarity score of the top retrieved text chunks along with multi-factor context verification metrics.'
     }
   ];
 
@@ -72,7 +72,7 @@ Question:
           About Research Agent AI
         </h1>
         <p className="text-xs sm:text-sm text-[#5C5D69] max-w-2xl mx-auto">
-          An intelligent AI research assistant powered by Retrieval-Augmented Generation (RAG), source retrieval, and strict citation grounding via Google AI Studio Gemini API.
+          An intelligent research workstation powered by Retrieval-Augmented Generation (RAG), semantic vector retrieval, and strict citation grounding.
         </p>
       </div>
 
@@ -93,7 +93,7 @@ Question:
             { step: '1', title: 'Upload & Parse', desc: 'PyMuPDF, PDFPlumber, python-docx, BeautifulSoup parse PDFs, DOCX, TXT, Web URLs.', icon: 'upload_file' },
             { step: '2', title: 'Chunk & Embed', desc: 'Splits text into 500-word chunks with 100-word overlap & generates embeddings.', icon: 'grid_view' },
             { step: '3', title: 'Vector Search', desc: 'Cosine similarity retrieves Top-K (5) most relevant passages from memory.', icon: 'travel_explore' },
-            { step: '4', title: 'Grounded Gemini', desc: 'Gemini synthesizes answer using only retrieved context with verified citations.', icon: 'auto_awesome' },
+            { step: '4', title: 'Grounded Synthesis', desc: 'Synthesizes accurate answers using only retrieved context with verified citations.', icon: 'auto_awesome' },
           ].map((item) => (
             <div key={item.step} className="p-4 rounded-2xl bg-[#FAF8FF] border border-[#E0E0FF] space-y-2 relative">
               <div className="w-10 h-10 rounded-xl bg-[#004AC1] text-white flex items-center justify-center mx-auto font-bold text-sm shadow-md">
@@ -150,12 +150,12 @@ Question:
         </div>
       </section>
 
-      {/* Google AI Studio Integration & Prompt Template */}
+      {/* Research Synthesis Prompt Template */}
       <section className="p-6 lg:p-8 rounded-3xl bg-gradient-to-br from-[#191B23] to-[#2D303E] text-white space-y-4 shadow-2xl">
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-purple-400 text-[24px]">psychology</span>
-            <h2 className="text-lg font-bold font-['Manrope']">Google AI Studio Prompt Template</h2>
+            <h2 className="text-lg font-bold font-['Manrope']">Research Synthesis Prompt Template</h2>
           </div>
           <button
             onClick={handleCopyPrompt}

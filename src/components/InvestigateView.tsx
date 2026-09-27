@@ -27,7 +27,7 @@ export const InvestigateView: React.FC<InvestigateViewProps> = ({ onNavigate }) 
     'Impact of Quantum Entanglement on Distributed Ledger Consensus',
     'Summarize Q4 Market Growth Drivers for AI Infrastructure',
     'How does Neural RAG eliminate LLM hallucination?',
-    'Synthesize competitive benchmarks between Claude & Gemini',
+    'Synthesize competitive benchmarks and architectural trade-offs',
   ];
 
   const handleSelectTopic = (topic: string) => {
