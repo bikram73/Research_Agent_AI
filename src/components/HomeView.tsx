@@ -147,35 +147,6 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
         </div>
       </section>
 
-      {/* Social Proof Section (Trusted Institutions) */}
-      <section className="py-8 border-y border-[#E0E0FF] bg-[#F8F7FF]/50 rounded-2xl">
-        <p className="text-center font-['JetBrains_Mono'] text-[11px] font-bold text-[#808191] uppercase tracking-[0.2em] mb-6">
-          Trusted by Leading Research Institutions
-        </p>
-        <div className="flex flex-wrap justify-center items-center gap-8 lg:gap-16 opacity-60 grayscale hover:grayscale-0 transition-all font-bold text-sm text-[#4A4B57] tracking-widest font-['JetBrains_Mono']">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[24px]">school</span>
-            <span>STANFORD</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[24px]">account_balance</span>
-            <span>MIT ACADEMY</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[24px]">science</span>
-            <span>CERN LABS</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[24px]">psychology</span>
-            <span>OXFORD RES</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[24px]">public</span>
-            <span>NASA ARC</span>
-          </div>
-        </div>
-      </section>
-
       {/* Metrics Banner */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
